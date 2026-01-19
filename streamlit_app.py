@@ -53,10 +53,10 @@ with st.sidebar:
 
     csv_url = st.text_input(
         "CSV URL",
-        value=default_url,
-        placeholder="구글 시트 CSV 링크"
+        placeholder="지정된 트래픽 데이터 문서(CSV)를 입력합니다"
     )
-    st.caption("지정된 트래픽 데이터 문서(CSV)를 입력합니다")
+    st.caption("사내 기준에 따라 지정된 플랫폼 트래픽 데이터 문서를 입력합니다")
+
 
     api_key = st.text_input(
         "Gemini API Key",
