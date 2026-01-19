@@ -52,14 +52,23 @@ with st.sidebar:
     st.header("⚙️ 설정 (Settings)")
 
     default_url = ""
-    csv_url = st.text_input("CSV URL", value=default_url, placeholder="구글 시트 CSV 링크")
-
-    st.divider()
+    csv_url = st.text_input(
+        "CSV URL",
+        value=default_url,
+        placeholder="구글 시트 CSV 링크"
+    )
 
     st.markdown("### 🤖 Gemini API Key")
-    api_key = st.text_input("API 키를 입력하세요", type="password", placeholder="AI Studio에서 발급받은 키")
-    st.caption("AI 심층분석을 위하여 필요합니다")
+    api_key = st.text_input(
+        "API 키를 입력하세요",
+        type="password",
+        placeholder="AI Studio에서 발급받은 키"
+    )
+    st.caption("AI 심층분석을 위해 필요합니다")
+
+    # 👉 설정 묶음과 테스트 메모 사이만 구분
     st.divider()
+
     st.markdown("### 🧪 테스트 메모")
     st.info("외부 유입 방어를 위해 데이터(CSV URL)와 API Key는 수동 입력 방식으로 운영합니다\n\n")
 
