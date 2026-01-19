@@ -56,7 +56,7 @@ with st.sidebar:
     # 2) 입력(필수) 카드: CSV URL
     with st.container(border=True):
         st.markdown("### 1) CSV URL (필수)")
-        st.caption("사내 기준에 따라 지정된 플랫폼 트래픽 데이터 문서(CSV)를 입력합니다")
+        st.caption("지정된 플랫폼 트래픽 데이터 문서(CSV)를 입력합니다")
 
         csv_url = st.text_input(
             label="CSV URL",
