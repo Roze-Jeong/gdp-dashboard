@@ -101,7 +101,7 @@ st.title("📊 NEWS&NOW 플랫폼 트래픽 AI 대시보드")
 
 if not csv_url:
     st.warning(
-        "📌 좌측 사이드바에서 CSV URL(필수)을 입력하면 대시보드가 자동으로 로딩됩니다",
+        "📌  좌측 사이드바에서 CSV URL(필수)을 입력하면 대시보드가 자동으로 로딩됩니다",
     )
     st.stop()
 
