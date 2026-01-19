@@ -51,7 +51,6 @@ def fmt_delta(curr, prev) -> str:
 with st.sidebar:
     st.header("⚙️ 설정 (Settings)")
 
-    default_url = ""
     csv_url = st.text_input(
         "CSV URL",
         value=default_url,
@@ -59,19 +58,17 @@ with st.sidebar:
     )
     st.caption("지정된 트래픽 데이터 문서(CSV)를 입력합니다")
 
-    st.markdown("### 🤖 Gemini API Key")
     api_key = st.text_input(
-        "API 키를 입력하세요",
+        "Gemini API Key",
         type="password",
         placeholder="AI Studio에서 발급받은 키"
     )
     st.caption("AI 심층분석을 위해 필요합니다")
 
-    # 👉 설정 묶음과 테스트 메모 사이만 구분
     st.divider()
 
     st.markdown("### 🧪 테스트 메모")
-    st.info("외부 유입 방어를 위해 데이터(CSV URL)와 API Key는 수동 입력 방식으로 운영합니다\n\n")
+    st.info("외부 유입 방어를 위해 데이터(CSV URL)와 API Key는 수동 입력 방식으로 운영합니다")
 
 # -----------------------------------------------------------------------------
 # 3. 메인 로직
