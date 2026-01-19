@@ -51,7 +51,7 @@ def fmt_delta(curr, prev) -> str:
 with st.sidebar:
     st.header("⚙️ 설정 (Settings)")
 
-    default_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT1X3eS9tH6n_q9O7F4tE1x2g4f5h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6/pub?gid=0&single=true&output=csv"
+    default_url = ""
     csv_url = st.text_input("CSV URL", value=default_url, placeholder="구글 시트 CSV 링크")
 
     st.divider()
@@ -60,6 +60,9 @@ with st.sidebar:
     api_key = st.text_input("API 키를 입력하세요", type="password", placeholder="AI Studio에서 발급받은 키")
     st.caption("키가 없으면 하단의 'AI 심층 분석' 기능만 비활성화됩니다.")
     st.link_button("🔑 키 발급받기", "https://aistudio.google.com/app/apikey")
+        st.divider()
+    st.markdown("### 🧪 테스트 메모")
+    st.info("외부 유입 방어를 위해 데이터(CSV URL)와 API Key는 수동 입력 방식으로 운영합니다\n\n")
 
 # -----------------------------------------------------------------------------
 # 3. 메인 로직
