@@ -129,7 +129,7 @@ try:
     weeks = df["주차"].astype(str).tolist()[::-1]  # 최신 주차가 위로
     selected_week = st.selectbox("주차", options=weeks, index=0)
 
-    st.caption("※ 선택한 주차 기준으로 모든 지표와 AI 분석이 업데이트됩니다")
+    st.caption("※ 선택한 주차를 기준으로 모든 지표와 AI 분석 결과가 업데이트됩니다")
 
     # 선택 주차 index 찾기
     idx = df[df["주차"].astype(str) == str(selected_week)].index[0]
