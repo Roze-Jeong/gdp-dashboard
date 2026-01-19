@@ -57,6 +57,7 @@ with st.sidebar:
         value=default_url,
         placeholder="구글 시트 CSV 링크"
     )
+    st.caption("지정된 트래픽 데이터 문서(CSV)를 입력합니다")
 
     st.markdown("### 🤖 Gemini API Key")
     api_key = st.text_input(
