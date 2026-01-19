@@ -103,6 +103,14 @@ if not csv_url:
     st.warning("👈 왼쪽 사이드바에 CSV URL을 입력해주세요.")
     st.stop()
 
+if not csv_url:
+    st.warning(
+        "1️⃣ 👈 좌측 사이드바에서 CSV URL을 입력해주세요.\n"
+        "2️⃣ 입력 즉시 트래픽 대시보드가 자동으로 로딩됩니다",
+        icon="🚀"
+    )
+    st.stop()
+
 try:
     # 데이터 로드 및 전처리
     df_raw = load_data(csv_url)
