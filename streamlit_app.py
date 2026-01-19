@@ -49,26 +49,50 @@ def fmt_delta(curr, prev) -> str:
 # 2. 사이드바 (설정)
 # -----------------------------------------------------------------------------
 with st.sidebar:
-    st.header("⚙️ 설정 (Settings)")
+    # 1) 사이드바 헤더
+    st.markdown("## ⚙️ 설정")
+    st.caption("대시보드 구동을 위해 아래 입력이 필요합니다")
 
-    csv_url = st.text_input(
-        "CSV URL",
-        placeholder="지정된 트래픽 데이터 문서(CSV)를 입력합니다"
-    )
-    st.caption("사내 기준에 따라 지정된 플랫폼 트래픽 데이터 문서를 입력합니다")
+    # 2) 입력(필수) 카드: CSV URL
+    with st.container(border=True):
+        st.markdown("### 1) CSV URL (필수)")
+        st.caption("사내 기준에 따라 지정된 플랫폼 트래픽 데이터 문서(CSV)를 입력합니다")
 
+        csv_url = st.text_input(
+            label="CSV URL",
+            value="",
+            placeholder="https://docs.google.com/spreadsheets/d/.../export?format=csv&gid=0",
+            help="Google Sheets의 CSV export 링크를 입력하세요"
+        )
 
-    api_key = st.text_input(
-        "Gemini API Key",
-        type="password",
-        placeholder="AI Studio에서 발급받은 키"
-    )
-    st.caption("AI 심층분석을 위해 필요합니다")
+        # 입력이 비어있으면 즉시 강조
+        if not csv_url:
+            st.warning("CSV URL을 입력해야 데이터가 표시됩니다", icon="⚠️")
 
-    st.divider()
+    # 3) 입력(선택) 카드: Gemini API Key
+    with st.container(border=True):
+        st.markdown("### 2) Gemini API Key (선택)")
+        st.caption("AI 심층분석 기능을 사용하려면 필요합니다")
 
+        # 기본은 접어서 깔끔하게, 필요할 때만 펼치게
+        with st.expander("API Key 입력하기", expanded=False):
+            api_key = st.text_input(
+                label="Gemini API Key",
+                type="password",
+                value="",
+                placeholder="AI Studio에서 발급받은 키",
+                help="키가 없으면 AI 심층분석만 비활성화되며, 대시보드 데이터는 정상 표시됩니다"
+            )
+    # expander 밖에서도 api_key가 정의되도록 보정
+    if "api_key" not in locals():
+        api_key = ""
+
+    # 4) 테스트/운영 메모 (읽기 영역)
     st.markdown("### 🧪 테스트 메모")
-    st.info("외부 유입 방어를 위해 데이터(CSV URL)와 API Key는 수동 입력 방식으로 운영합니다")
+    st.info(
+        "외부 유입 방어를 위해 데이터(CSV URL)와 API Key는 수동 입력 방식으로 운영합니다",
+        icon="✅"
+    )
 
 # -----------------------------------------------------------------------------
 # 3. 메인 로직
