@@ -15,21 +15,35 @@ def load_data(url: str) -> pd.DataFrame:
 def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
     """데이터 전처리: 컬럼명 정리 + 콤마 제거 및 숫자 변환"""
     df_clean = df.copy()
-
-    # 컬럼명 앞뒤 공백 제거(키에러 방지)
     df_clean.columns = df_clean.columns.astype(str).str.strip()
 
-    # 숫자 컬럼 처리
+    # ✅ 텍스트 컬럼(숫자 변환 제외) 규칙: '순위' 컬럼은 텍스트로 유지
+    def is_text_col(col: str) -> bool:
+        col = str(col)
+        if col in ["주차", "날짜", "Date"]:
+            return True
+        # 키워드/기사 '순위'는 텍스트
+        if col.endswith("순위") and ("키워드" in col or "기사" in col):
+            return True
+        # (선택) 기사 순위 컬럼 패턴이 더 있다면 여기 추가 가능
+        return False
+
     for col in df_clean.columns:
-        if col not in ["주차", "날짜", "Date"]:
-            df_clean[col] = (
-                df_clean[col]
-                .astype(str)
-                .str.replace(",", "", regex=False)
-                .apply(pd.to_numeric, errors="coerce")
-                .fillna(0)
-            )
+        if is_text_col(col):
+            df_clean[col] = df_clean[col].astype(str).str.strip()
+            continue
+
+        df_clean[col] = (
+            df_clean[col]
+            .astype(str)
+            .str.replace(",", "", regex=False)
+            .str.replace("%", "", regex=False)  # ✅ 비중 컬럼이 %로 들어오면 제거
+            .apply(pd.to_numeric, errors="coerce")
+            .fillna(0)
+        )
+
     return df_clean
+
 
 def fmt_delta(curr, prev) -> str:
     """전주 대비 변화율 표시"""
@@ -97,7 +111,7 @@ with st.sidebar:
 # -----------------------------------------------------------------------------
 # 3. 메인 로직
 # -----------------------------------------------------------------------------
-st.title("📊 NEWS&NOW 플랫폼 트래픽 AI 대시보드")
+st.title("NEWS&NOW 플랫폼 트래픽 AI 대시보드")
 
 if not csv_url:
     st.warning(
@@ -124,7 +138,7 @@ try:
     # [드릴다운] 주차 선택 (선택 주차에 따라 latest/prev 재정의)
     # -----------------------------------------------------------------------------
     st.divider()
-    st.subheader("🗓️ 기준 주차")
+    st.subheader("기준 주차")
 
     weeks = df["주차"].astype(str).tolist()[::-1]  # 최신 주차가 위로
     selected_week = st.selectbox("주차", options=weeks, index=0)
@@ -144,7 +158,7 @@ try:
     # -----------------------------------------------------------------------------
     # [섹션 1] 주간 핵심 지표 (KPI)
     # -----------------------------------------------------------------------------
-    st.markdown("### 🚀 주간 핵심 지표")
+    st.markdown("### 주간 핵심 지표")
 
     # 1행: 트래픽/다운로드
     k1, k2, k3, k4 = st.columns(4)
@@ -173,7 +187,7 @@ try:
     # -----------------------------------------------------------------------------
     # [추가 섹션] KPI 아래: 방송/뉴스 상세 탭 + 기간 선택
     # -----------------------------------------------------------------------------
-    st.subheader("📌 방송/뉴스 상세 보기")
+    st.subheader("방송/뉴스 상세 보기")
     
     # ✅ 기간 선택 (탭보다 위에 있어야 탭 전체에 적용)
     st.markdown("### ⏱ 조회 기간")  # 더 크게 보이게
@@ -210,10 +224,10 @@ try:
         df2["뉴스_앱다운로드"] = 0
     
     # ✅ 탭 순서: 방송 먼저
-    tab_b, tab_n = st.tabs(["📺 방송", "📰 뉴스"])
+    tab_b, tab_n = st.tabs(["방송", "뉴스"])
     
     with tab_b:
-        st.markdown("#### 📺 방송")
+        st.markdown("#### 방송")
         st.caption("선택 주차 기준 방송 PV/UV/앱다운로드 추이를 확인합니다")
     
         fig_b_pv = px.line(df2, x="주차", y=["방송_PV"], markers=True, title="방송 PV 추이")
@@ -235,7 +249,7 @@ try:
         st.plotly_chart(fig_b_app, use_container_width=True)
     
     with tab_n:
-        st.markdown("#### 📰 뉴스")
+        st.markdown("#### 뉴스")
         st.caption("선택 주차 기준 뉴스 PV/UV/앱다운로드 · 키워드 · 유입을 확인합니다")
     
         fig_n_pv = px.line(df2, x="주차", y=["뉴스_PV"], markers=True, title="뉴스 PV 추이")
@@ -260,53 +274,65 @@ try:
         st.plotly_chart(fig_n_app, use_container_width=True)
     
         st.markdown("#### 🏷️ 주별 뉴스 키워드 TOP3")
-        kw_cols = ["뉴스_키워드1", "뉴스_키워드2", "뉴스_키워드3"]
-        if all(c in df2.columns for c in kw_cols):
-            kws = [str(latest.get(c, "")).strip() for c in kw_cols]
-            kws = [k for k in kws if k and k.lower() != "nan"]
-            if kws:
-                st.success(" · ".join([f"**{i+1}순위** {k}" for i, k in enumerate(kws)]))
-            else:
-                st.caption("키워드 값이 비어 있습니다")
+        st.caption("선택 주차 기준 주요 키워드와 비중(%)을 표시합니다")
+        
+        kw_cols = ["뉴스_키워드_1순위", "뉴스_키워드_2순위", "뉴스_키워드_3순위"]
+        kw_share_cols = ["뉴스_키워드_1비중", "뉴스_키워드_2비중", "뉴스_키워드_3비중"]
+        
+        missing = [c for c in kw_cols + kw_share_cols if c not in df.columns]
+        if missing:
+            st.info(f"키워드 TOP3 컬럼을 찾지 못했습니다: {', '.join(missing)}")
         else:
-            st.info("뉴스 키워드 컬럼(뉴스_키워드1~3)을 찾지 못했습니다")
-    
-        st.markdown("#### 🧭 뉴스 유입 소스 (사용자/세션)")
-        user_cols = [c for c in df2.columns if str(c).startswith("뉴스_유입_") and str(c).endswith("_사용자")]
-        sess_cols = [c for c in df2.columns if str(c).startswith("뉴스_유입_") and str(c).endswith("_세션")]
-    
-        if user_cols or sess_cols:
-            def src_name(col: str) -> str:
-                parts = col.split("_")
-                return parts[2] if len(parts) >= 4 else col
-    
-            sources = sorted(set([src_name(c) for c in user_cols + sess_cols]))
             rows = []
-            for s in sources:
+            for i in range(3):
+                kw = str(latest.get(kw_cols[i], "")).strip()
+                share = latest.get(kw_share_cols[i], 0)
+        
+                if not kw or kw.lower() == "nan":
+                    continue
+        
+                try:
+                    share_val = float(share)
+                except Exception:
+                    share_val = 0.0
+        
                 rows.append({
-                    "유입소스": s,
-                    "사용자": float(latest.get(f"뉴스_유입_{s}_사용자", 0) or 0),
-                    "세션": float(latest.get(f"뉴스_유입_{s}_세션", 0) or 0),
+                    "순위": f"{i+1}위",
+                    "키워드": kw,
+                    "비중(%)": share_val
                 })
-    
-            acq_df = pd.DataFrame(rows)
-    
-            c1, c2 = st.columns(2)
-            with c1:
-                fig_u = px.bar(acq_df, x="유입소스", y="사용자", title="사용자 기준")
-                fig_u.update_layout(xaxis_title=None, yaxis_title="사용자", template="plotly_white")
-                st.plotly_chart(fig_u, use_container_width=True)
-            with c2:
-                fig_s = px.bar(acq_df, x="유입소스", y="세션", title="세션 기준")
-                fig_s.update_layout(xaxis_title=None, yaxis_title="세션", template="plotly_white")
-                st.plotly_chart(fig_s, use_container_width=True)
+        
+            if not rows:
+                st.caption("키워드 값이 비어 있습니다")
+            else:
+                top_df = pd.DataFrame(rows)
+        
+                # 표
+                st.dataframe(top_df, use_container_width=True, hide_index=True)
+        
+                # 차트 (비중 %)
+                fig_kw = px.bar(
+                    top_df,
+                    x="순위",
+                    y="비중(%)",
+                    text="키워드",
+                    title="키워드 비중(%)"
+                )
+                fig_kw.update_layout(
+                    xaxis_title=None,
+                    yaxis_title="비중(%)",
+                    template="plotly_white"
+                )
+                fig_kw.update_traces(textposition="outside")
+                st.plotly_chart(fig_kw, use_container_width=True)
+
         else:
             st.info("뉴스 유입 컬럼(뉴스_유입_XXX_사용자/세션)을 찾지 못했습니다")
 
     # -----------------------------------------------------------------------------
     # [섹션 2] 차트 분석 (선택 주차 기준선 표시)
     # -----------------------------------------------------------------------------
-    st.subheader("📈 채널별 트래픽 추이 분석")
+    st.subheader("채널별 트래픽 추이 분석")
 
     tab1, tab2, tab3 = st.tabs(["PV 추이 (통합)", "앱 다운로드 추이", "회원 지표 추이"])
 
@@ -386,7 +412,7 @@ try:
     # [섹션 3] 규칙 기반 자동 요약 (선택 주차 기준)
     # -----------------------------------------------------------------------------
     st.divider()
-    st.subheader("⚡ 트래픽 급등/급락 감지")
+    st.subheader("트래픽 급등/급락 감지")
 
     alerts = []
 
