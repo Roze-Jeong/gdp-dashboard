@@ -324,8 +324,73 @@ try:
                 fig_kw.update_traces(textposition="outside")
                 st.plotly_chart(fig_kw, use_container_width=True)
 
+        st.markdown("#### 🧭 뉴스 유입 소스 (사용자/세션)")
+        st.caption("소스 순서: 전체 → 다이렉트 → 네이버 → 다음 → 구글 → 기타")
+        
+        # 1) 원하는 표시 순서 고정
+        ordered_sources = ["전체", "다이렉트", "네이버", "다음", "구글", "기타"]
+        
+        # 2) 컬럼 패턴(시트 컬럼명 규칙에 맞춰 조정 필요)
+        #    현재 Roze 코드 패턴: 뉴스_유입_{소스}_사용자 / 뉴스_유입_{소스}_세션
+        rows = []
+        for s in ordered_sources:
+            u = latest.get(f"뉴스_유입_{s}_사용자", 0)
+            se = latest.get(f"뉴스_유입_{s}_세션", 0)
+        
+            # 숫자형 안전 변환
+            try:
+                u = float(u)
+            except Exception:
+                u = 0.0
+            try:
+                se = float(se)
+            except Exception:
+                se = 0.0
+        
+            rows.append({"유입소스": s, "사용자": u, "세션": se})
+        
+        acq_df = pd.DataFrame(rows)
+        
+        # 3) (선택) 전부 0이면 안내
+        if acq_df["사용자"].sum() == 0 and acq_df["세션"].sum() == 0:
+            st.info("뉴스 유입 컬럼(뉴스_유입_XXX_사용자/세션)을 찾지 못했거나 값이 모두 0입니다. 시트 컬럼명을 확인해주세요")
         else:
-            st.info("뉴스 유입 컬럼(뉴스_유입_XXX_사용자/세션)을 찾지 못했습니다")
+            c1, c2 = st.columns(2)
+        
+            # ✅ 사용자 기준: 막대(현행 유지) + 순서 고정 + '전체'만 레드
+            with c1:
+                fig_u = px.bar(
+                    acq_df,
+                    x="유입소스",
+                    y="사용자",
+                    title="사용자 기준",
+                    category_orders={"유입소스": ordered_sources},
+                    color="유입소스",
+                    color_discrete_map={"전체": "red"}  # 전체만 레드, 나머지는 기본 팔레트
+                )
+                fig_u.update_layout(
+                    xaxis_title=None,
+                    yaxis_title="사용자",
+                    template="plotly_white",
+                    showlegend=False  # 색은 강조용이라 범례는 숨김(원하면 True)
+                )
+                st.plotly_chart(fig_u, use_container_width=True)
+        
+            # ✅ 세션 기준: 원형 차트(Pie) + 순서 고정 + '전체'만 레드
+            with c2:
+                # Pie는 정렬이 중요해서 acq_df를 순서대로 유지
+                fig_s = px.pie(
+                    acq_df,
+                    names="유입소스",
+                    values="세션",
+                    title="세션 기준",
+                    category_orders={"유입소스": ordered_sources},
+                    color="유입소스",
+                    color_discrete_map={"전체": "red"}  # 전체만 레드
+                )
+                fig_s.update_layout(template="plotly_white")
+                st.plotly_chart(fig_s, use_container_width=True)
+
 
     # -----------------------------------------------------------------------------
     # [섹션 2] 차트 분석 (선택 주차 기준선 표시)
