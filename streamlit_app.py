@@ -307,10 +307,8 @@ try:
             else:
                 top_df = pd.DataFrame(rows)
         
-                # 표
                 st.dataframe(top_df, use_container_width=True, hide_index=True)
         
-                # 차트 (비중 %)
                 fig_kw = px.bar(
                     top_df,
                     x="순위",
