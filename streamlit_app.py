@@ -175,21 +175,25 @@ try:
     # -----------------------------------------------------------------------------
     st.subheader("📌 방송/뉴스 상세 보기")
     
-    # ✅ 기간 선택 (탭보다 위에 있어야 탭 전체에 적용됨)
-    st.markdown("#### ⏱ 조회 기간")
+    # ✅ 기간 선택 (탭보다 위에 있어야 탭 전체에 적용)
+    st.markdown("### ⏱ 조회 기간")  # 더 크게 보이게
     range_label = st.radio(
-        label="조회 기간",
+        "조회 기간",
         options=["최근 3개월", "최근 6개월", "최근 1년"],
         horizontal=True,
-        index=0
+        index=0,
+        key="range_label_main"  # 🔥 키 강제 지정 (렌더/상태 충돌 방지)
     )
+    
+    # (선택) 진짜 렌더되었는지 바로 확인용 표시 - 문제 해결 후 지워도 됨
+    st.caption(f"선택된 기간: {range_label}")
     
     weeks_map = {"최근 3개월": 13, "최근 6개월": 26, "최근 1년": 52}
     n_weeks = weeks_map[range_label]
     
-    # ✅ 여기서부터는 이 df_range만 사용
     df_range = df.tail(n_weeks).copy()
     df2 = df_range.copy()
+
     
     # 파생 컬럼 생성
     if "방송_AOS 다운로드" in df2.columns and "방송_iOS 다운로드" in df2.columns:
