@@ -169,137 +169,127 @@ try:
         st.metric("➖ 탈퇴회원", f"{latest.get(CHURN_MEM, 0):,.0f}", fmt_delta(latest.get(CHURN_MEM, 0), prev.get(CHURN_MEM, 0) if prev is not None else None))
 
     st.divider()
-
-    # ✅ [KPI 섹션]은 그대로 둔 상태에서,
-# KPI 출력(주간 핵심 지표 카드들) + st.divider() 바로 다음에
-# 아래 블록을 "추가"하세요
-
-# -----------------------------------------------------------------------------
-# [추가 섹션] KPI 아래: 방송/뉴스 상세 탭
-# -----------------------------------------------------------------------------
-st.subheader("📌 방송/뉴스 상세 보기")
-tab_b, tab_n = st.tabs(["📺 방송", "📰 뉴스"])
-
-# 공통: 앱 다운로드 합산 컬럼을 안전하게 만들어두기 (방송/뉴스 각각)
-df2 = df.copy()
-
-# 방송 앱다운로드 합산(이미 curr_app 계산은 있지만, 차트용 컬럼이 필요)
-if "방송_AOS 다운로드" in df2.columns and "방송_iOS 다운로드" in df2.columns:
-    df2["방송_앱다운로드"] = df2["방송_AOS 다운로드"] + df2["방송_iOS 다운로드"]
-else:
-    df2["방송_앱다운로드"] = 0
-
-# 뉴스 UV/앱다운로드는 컬럼명이 시트에 따라 다를 수 있어 안전 처리
-NEWS_UV_COL_CANDIDATES = ["뉴스_사용자", "뉴스_UV", "뉴스UV", "뉴스_사용자수"]
-news_uv_col = next((c for c in NEWS_UV_COL_CANDIDATES if c in df2.columns), None)
-
-if "뉴스_AOS 다운로드" in df2.columns and "뉴스_iOS 다운로드" in df2.columns:
-    df2["뉴스_앱다운로드"] = df2["뉴스_AOS 다운로드"] + df2["뉴스_iOS 다운로드"]
-else:
-    # 뉴스 앱다운로드 컬럼이 없으면 0으로 (표시는 안내)
-    df2["뉴스_앱다운로드"] = 0
-
-with tab_b:
-    st.markdown("#### 📺 방송")
-    st.caption("선택 주차 기준 방송 PV/UV/앱다운로드 추이를 확인합니다")
-
-    # 1) 방송 PV
-    fig_b_pv = px.line(df2, x="주차", y=["방송_PV"], markers=True, title="방송 PV 추이")
-    fig_b_pv.update_layout(hovermode="x unified", xaxis_title=None, yaxis_title="PV", template="plotly_white")
-    fig_b_pv.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
-    st.plotly_chart(fig_b_pv, use_container_width=True)
-
-    # 2) 방송 UV
-    fig_b_uv = px.line(df2, x="주차", y=["방송_사용자"], markers=True, title="방송 UV 추이")
-    fig_b_uv.update_layout(hovermode="x unified", xaxis_title=None, yaxis_title="UV", template="plotly_white")
-    fig_b_uv.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
-    st.plotly_chart(fig_b_uv, use_container_width=True)
-
-    # 3) 방송 앱 다운로드
-    fig_b_app = px.bar(df2, x="주차", y=["방송_앱다운로드"], title="방송 앱 다운로드 추이")
-    fig_b_app.update_layout(hovermode="x unified", xaxis_title=None, yaxis_title="다운로드", template="plotly_white")
-    fig_b_app.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
-    st.plotly_chart(fig_b_app, use_container_width=True)
-
-with tab_n:
-    st.markdown("#### 📰 뉴스")
-    st.caption("선택 주차 기준 뉴스 PV/UV/앱다운로드 + 키워드/유입을 확인합니다")
-
-    # 1) 뉴스 PV
-    fig_n_pv = px.line(df2, x="주차", y=["뉴스_PV"], markers=True, title="뉴스 PV 추이")
-    fig_n_pv.update_layout(hovermode="x unified", xaxis_title=None, yaxis_title="PV", template="plotly_white")
-    fig_n_pv.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
-    st.plotly_chart(fig_n_pv, use_container_width=True)
-
-    # 2) 뉴스 UV (컬럼 후보 중 존재하는 것 사용)
-    if news_uv_col:
-        fig_n_uv = px.line(df2, x="주차", y=[news_uv_col], markers=True, title="뉴스 UV 추이")
-        fig_n_uv.update_layout(hovermode="x unified", xaxis_title=None, yaxis_title="UV", template="plotly_white")
-        fig_n_uv.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
-        st.plotly_chart(fig_n_uv, use_container_width=True)
+    
+    # -----------------------------------------------------------------------------
+    # [추가 섹션] KPI 아래: 방송/뉴스 상세 탭
+    # -----------------------------------------------------------------------------
+    st.subheader("📌 방송/뉴스 상세 보기")
+    tab_b, tab_n = st.tabs(["📺 방송", "📰 뉴스"])
+    
+    # 공통: 앱 다운로드 합산 컬럼을 안전하게 만들어두기 (방송/뉴스 각각)
+    df2 = df.copy()
+    
+    # 방송 앱다운로드 합산(이미 curr_app 계산은 있지만, 차트용 컬럼이 필요)
+    if "방송_AOS 다운로드" in df2.columns and "방송_iOS 다운로드" in df2.columns:
+        df2["방송_앱다운로드"] = df2["방송_AOS 다운로드"] + df2["방송_iOS 다운로드"]
     else:
-        st.info("뉴스 UV 컬럼을 찾지 못했습니다 (예: 뉴스_사용자). 시트 컬럼명을 확인해주세요")
-
-    # 3) 뉴스 앱 다운로드
-    if "뉴스_AOS 다운로드" in df.columns and "뉴스_iOS 다운로드" in df.columns:
-        fig_n_app = px.bar(df2, x="주차", y=["뉴스_앱다운로드"], title="뉴스 앱 다운로드 추이")
-        fig_n_app.update_layout(hovermode="x unified", xaxis_title=None, yaxis_title="다운로드", template="plotly_white")
-        fig_n_app.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
-        st.plotly_chart(fig_n_app, use_container_width=True)
+        df2["방송_앱다운로드"] = 0
+    
+    # 뉴스 UV/앱다운로드는 컬럼명이 시트에 따라 다를 수 있어 안전 처리
+    NEWS_UV_COL_CANDIDATES = ["뉴스_사용자", "뉴스_UV", "뉴스UV", "뉴스_사용자수"]
+    news_uv_col = next((c for c in NEWS_UV_COL_CANDIDATES if c in df2.columns), None)
+    
+    if "뉴스_AOS 다운로드" in df2.columns and "뉴스_iOS 다운로드" in df2.columns:
+        df2["뉴스_앱다운로드"] = df2["뉴스_AOS 다운로드"] + df2["뉴스_iOS 다운로드"]
     else:
-        st.info("뉴스 앱다운로드 컬럼을 찾지 못했습니다 (예: 뉴스_AOS 다운로드/뉴스_iOS 다운로드)")
-
-    # 4) ✅ 신규: 주별 뉴스 키워드 TOP3
-    st.markdown("#### 🏷️ 주별 뉴스 키워드 TOP3")
-    kw_cols = ["뉴스_키워드1", "뉴스_키워드2", "뉴스_키워드3"]
-    if all(c in df.columns for c in kw_cols):
-        kws = [str(latest.get(c, "")).strip() for c in kw_cols]
-        kws = [k for k in kws if k and k.lower() != "nan"]
-        if kws:
-            st.success(" · ".join([f"**{i+1}순위** {k}" for i, k in enumerate(kws)]))
+        # 뉴스 앱다운로드 컬럼이 없으면 0으로 (표시는 안내)
+        df2["뉴스_앱다운로드"] = 0
+    
+    with tab_b:
+        st.markdown("#### 📺 방송")
+        st.caption("선택 주차 기준 방송 PV/UV/앱다운로드 추이를 확인합니다")
+    
+        # 1) 방송 PV
+        fig_b_pv = px.line(df2, x="주차", y=["방송_PV"], markers=True, title="방송 PV 추이")
+        fig_b_pv.update_layout(hovermode="x unified", xaxis_title=None, yaxis_title="PV", template="plotly_white")
+        fig_b_pv.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
+        st.plotly_chart(fig_b_pv, use_container_width=True)
+    
+        # 2) 방송 UV
+        fig_b_uv = px.line(df2, x="주차", y=["방송_사용자"], markers=True, title="방송 UV 추이")
+        fig_b_uv.update_layout(hovermode="x unified", xaxis_title=None, yaxis_title="UV", template="plotly_white")
+        fig_b_uv.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
+        st.plotly_chart(fig_b_uv, use_container_width=True)
+    
+        # 3) 방송 앱 다운로드
+        fig_b_app = px.bar(df2, x="주차", y=["방송_앱다운로드"], title="방송 앱 다운로드 추이")
+        fig_b_app.update_layout(hovermode="x unified", xaxis_title=None, yaxis_title="다운로드", template="plotly_white")
+        fig_b_app.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
+        st.plotly_chart(fig_b_app, use_container_width=True)
+    
+    with tab_n:
+        st.markdown("#### 📰 뉴스")
+        st.caption("선택 주차 기준 뉴스 PV/UV/앱다운로드 + 키워드/유입을 확인합니다")
+    
+        # 1) 뉴스 PV
+        fig_n_pv = px.line(df2, x="주차", y=["뉴스_PV"], markers=True, title="뉴스 PV 추이")
+        fig_n_pv.update_layout(hovermode="x unified", xaxis_title=None, yaxis_title="PV", template="plotly_white")
+        fig_n_pv.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
+        st.plotly_chart(fig_n_pv, use_container_width=True)
+    
+        # 2) 뉴스 UV (컬럼 후보 중 존재하는 것 사용)
+        if news_uv_col:
+            fig_n_uv = px.line(df2, x="주차", y=[news_uv_col], markers=True, title="뉴스 UV 추이")
+            fig_n_uv.update_layout(hovermode="x unified", xaxis_title=None, yaxis_title="UV", template="plotly_white")
+            fig_n_uv.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
+            st.plotly_chart(fig_n_uv, use_container_width=True)
         else:
-            st.caption("키워드 값이 비어 있습니다")
-    else:
-        st.info("뉴스 키워드 컬럼(뉴스_키워드1~3)을 찾지 못했습니다. 시트 컬럼명을 확인해주세요")
-
-    # 5) ✅ 신규: 뉴스 유입(사용자/세션)
-    st.markdown("#### 🧭 뉴스 유입 소스 (사용자/세션)")
-
-    user_cols = [c for c in df.columns if str(c).startswith("뉴스_유입_") and str(c).endswith("_사용자")]
-    sess_cols = [c for c in df.columns if str(c).startswith("뉴스_유입_") and str(c).endswith("_세션")]
-
-    if user_cols or sess_cols:
-        def src_name(col: str) -> str:
-            parts = col.split("_")
-            # 뉴스_유입_<소스>_사용자
-            return parts[2] if len(parts) >= 4 else col
-
-        sources = sorted(set([src_name(c) for c in user_cols + sess_cols]))
-        rows = []
-        for s in sources:
-            u = float(latest.get(f"뉴스_유입_{s}_사용자", 0) or 0)
-            se = float(latest.get(f"뉴스_유입_{s}_세션", 0) or 0)
-            rows.append({"유입소스": s, "사용자": u, "세션": se})
-
-        acq_df = pd.DataFrame(rows)
-
-        c1, c2 = st.columns(2)
-        with c1:
-            fig_u = px.bar(acq_df, x="유입소스", y="사용자", title="사용자 기준")
-            fig_u.update_layout(xaxis_title=None, yaxis_title="사용자", template="plotly_white")
-            st.plotly_chart(fig_u, use_container_width=True)
-        with c2:
-            fig_s = px.bar(acq_df, x="유입소스", y="세션", title="세션 기준")
-            fig_s.update_layout(xaxis_title=None, yaxis_title="세션", template="plotly_white")
-            st.plotly_chart(fig_s, use_container_width=True)
-    else:
-        st.info("뉴스 유입 컬럼(뉴스_유입_XXX_사용자/세션)을 찾지 못했습니다. 시트 컬럼명을 확인해주세요")
-
-# ✅ 이후 섹션은 Roze 요구대로 "현재 그대로" 유지하면 됩니다
-# - 채널별 트래픽 추이 분석(통합)
-# - 트래픽 급등/급락 감지(통합)
-# - AI 심층 분석(통합)
-
+            st.info("뉴스 UV 컬럼을 찾지 못했습니다 (예: 뉴스_사용자). 시트 컬럼명을 확인해주세요")
+    
+        # 3) 뉴스 앱 다운로드
+        if "뉴스_AOS 다운로드" in df.columns and "뉴스_iOS 다운로드" in df.columns:
+            fig_n_app = px.bar(df2, x="주차", y=["뉴스_앱다운로드"], title="뉴스 앱 다운로드 추이")
+            fig_n_app.update_layout(hovermode="x unified", xaxis_title=None, yaxis_title="다운로드", template="plotly_white")
+            fig_n_app.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
+            st.plotly_chart(fig_n_app, use_container_width=True)
+        else:
+            st.info("뉴스 앱다운로드 컬럼을 찾지 못했습니다 (예: 뉴스_AOS 다운로드/뉴스_iOS 다운로드)")
+    
+        # 4) ✅ 신규: 주별 뉴스 키워드 TOP3
+        st.markdown("#### 🏷️ 주별 뉴스 키워드 TOP3")
+        kw_cols = ["뉴스_키워드1", "뉴스_키워드2", "뉴스_키워드3"]
+        if all(c in df.columns for c in kw_cols):
+            kws = [str(latest.get(c, "")).strip() for c in kw_cols]
+            kws = [k for k in kws if k and k.lower() != "nan"]
+            if kws:
+                st.success(" · ".join([f"**{i+1}순위** {k}" for i, k in enumerate(kws)]))
+            else:
+                st.caption("키워드 값이 비어 있습니다")
+        else:
+            st.info("뉴스 키워드 컬럼(뉴스_키워드1~3)을 찾지 못했습니다. 시트 컬럼명을 확인해주세요")
+    
+        # 5) ✅ 신규: 뉴스 유입(사용자/세션)
+        st.markdown("#### 🧭 뉴스 유입 소스 (사용자/세션)")
+    
+        user_cols = [c for c in df.columns if str(c).startswith("뉴스_유입_") and str(c).endswith("_사용자")]
+        sess_cols = [c for c in df.columns if str(c).startswith("뉴스_유입_") and str(c).endswith("_세션")]
+    
+        if user_cols or sess_cols:
+            def src_name(col: str) -> str:
+                parts = col.split("_")
+                # 뉴스_유입_<소스>_사용자
+                return parts[2] if len(parts) >= 4 else col
+    
+            sources = sorted(set([src_name(c) for c in user_cols + sess_cols]))
+            rows = []
+            for s in sources:
+                u = float(latest.get(f"뉴스_유입_{s}_사용자", 0) or 0)
+                se = float(latest.get(f"뉴스_유입_{s}_세션", 0) or 0)
+                rows.append({"유입소스": s, "사용자": u, "세션": se})
+    
+            acq_df = pd.DataFrame(rows)
+    
+            c1, c2 = st.columns(2)
+            with c1:
+                fig_u = px.bar(acq_df, x="유입소스", y="사용자", title="사용자 기준")
+                fig_u.update_layout(xaxis_title=None, yaxis_title="사용자", template="plotly_white")
+                st.plotly_chart(fig_u, use_container_width=True)
+            with c2:
+                fig_s = px.bar(acq_df, x="유입소스", y="세션", title="세션 기준")
+                fig_s.update_layout(xaxis_title=None, yaxis_title="세션", template="plotly_white")
+                st.plotly_chart(fig_s, use_container_width=True)
+        else:
+            st.info("뉴스 유입 컬럼(뉴스_유입_XXX_사용자/세션)을 찾지 못했습니다. 시트 컬럼명을 확인해주세요")
 
     # -----------------------------------------------------------------------------
     # [섹션 2] 차트 분석 (선택 주차 기준선 표시)
