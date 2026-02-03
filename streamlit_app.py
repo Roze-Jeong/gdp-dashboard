@@ -466,18 +466,20 @@ try:
         st.plotly_chart(fig_app, use_container_width=True, key="channel_app_bar")
 
 
-     with tab3:
-        mem_cols = [c for c in [TOTAL_MEM, CONV_MEM, NEW_MEM, CHURN_MEM] if c in df_ch.columns]  # ✅ df → df_ch
+    with tab3:
+        mem_cols = [c for c in [TOTAL_MEM, CONV_MEM, NEW_MEM, CHURN_MEM] if c in df_ch.columns]
+    
         if not mem_cols:
             st.warning("회원 지표 컬럼을 찾지 못했습니다. (총회원수/누적전환회원/신규회원/탈퇴회원 헤더 확인 필요)")
         else:
             fig_mem = px.line(
-                df_ch,   # ✅ df → df_ch
+                df_ch,
                 x="주차",
                 y=mem_cols,
                 markers=True,
                 title="회원 지표 추이 (총/전환/신규/탈퇴)"
             )
+    
             fig_mem.update_layout(
                 hovermode="x unified",
                 xaxis_title=None,
@@ -487,9 +489,19 @@ try:
             )
     
             if str(selected_week) in df_ch["주차"].astype(str).tolist():
-                fig_mem.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
+                fig_mem.add_vline(
+                    x=selected_week,
+                    line_width=2,
+                    line_dash="dash",
+                    line_color="red"
+                )
     
-            st.plotly_chart(fig_mem, use_container_width=True, key="channel_mem_line")
+            st.plotly_chart(
+                fig_mem,
+                use_container_width=True,
+                key="channel_mem_line"
+            )
+
 
 
     # -----------------------------------------------------------------------------
