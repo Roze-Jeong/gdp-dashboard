@@ -193,7 +193,7 @@ try:
     st.markdown("### ⏱ 조회 기간")  # 더 크게 보이게
     range_label = st.radio(
         "조회 기간",
-        options=["최근 3개월", "최근 6개월", "최근 1년"],
+        options=["최근 1년", "최근 6개월", "최근 3개월"],
         horizontal=True,
         index=0,
         key="range_label_main"  # 🔥 키 강제 지정 (렌더/상태 충돌 방지)
@@ -202,7 +202,7 @@ try:
     # (선택) 진짜 렌더되었는지 바로 확인용 표시 - 문제 해결 후 지워도 됨
     st.caption(f"선택된 기간: {range_label}")
     
-    weeks_map = {"최근 3개월": 13, "최근 6개월": 26, "최근 1년": 52}
+    weeks_map = {"최근 1년": 52, "최근 6개월": 26, "최근 3개월": 13}
     n_weeks = weeks_map[range_label]
     
     df_range = df.tail(n_weeks).copy()
@@ -406,11 +406,26 @@ try:
     # -----------------------------------------------------------------------------
     st.subheader("채널별 트래픽 추이 분석")
 
+    # ✅ [섹션2 전용] 조회 기간 필터 (3/6/12개월)
+    st.markdown("### ⏱ 조회 기간 (채널별 추이)")
+    range_label_ch = st.radio(
+        "조회 기간 (채널별 추이)",
+        options=["최근 1년", "최근 6개월", "최근 3개월"],
+        horizontal=True,
+        index=0,
+        key="range_label_channel"  # 🔥 섹션1과 key 충돌 방지
+    )
+    
+    weeks_map = {"최근 1년": 52, "최근 6개월": 26, "최근 3개월": 13}
+    n_weeks_ch = weeks_map[range_label_ch]
+    
+    df_ch = df.tail(n_weeks_ch).copy()
+
     tab1, tab2, tab3 = st.tabs(["PV 추이 (통합)", "앱 다운로드 추이", "회원 지표 추이"])
 
     with tab1:
         fig_pv = px.line(
-            df,
+            df_ch,   # ✅ df → df_ch
             x="주차",
             y=["방송_PV", "뉴스_PV"],
             markers=True,
@@ -423,18 +438,17 @@ try:
             legend_title="채널",
             template="plotly_white"
         )
-        # 선택 주차 기준선
-        fig_pv.add_vline(
-            x=selected_week,
-            line_width=2,
-            line_dash="dash",
-            line_color="red"
-        )
-        st.plotly_chart(fig_pv, use_container_width=True)
+    
+        # ✅ 선택 주차가 df_ch에 있을 때만 기준선 표시
+        if str(selected_week) in df_ch["주차"].astype(str).tolist():
+            fig_pv.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
+    
+        st.plotly_chart(fig_pv, use_container_width=True, key="channel_pv_line")
+
 
     with tab2:
         fig_app = px.bar(
-            df,
+            df_ch,   # ✅ df → df_ch
             x="주차",
             y=["방송_AOS 다운로드", "방송_iOS 다운로드"],
             title="OS별 앱 다운로드 추이",
@@ -445,21 +459,20 @@ try:
             xaxis_title=None,
             template="plotly_white"
         )
-        fig_app.add_vline(
-            x=selected_week,
-            line_width=2,
-            line_dash="dash",
-            line_color="red"
-        )
-        st.plotly_chart(fig_app, use_container_width=True)
+    
+        if str(selected_week) in df_ch["주차"].astype(str).tolist():
+            fig_app.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
+    
+        st.plotly_chart(fig_app, use_container_width=True, key="channel_app_bar")
 
-    with tab3:
-        mem_cols = [c for c in [TOTAL_MEM, CONV_MEM, NEW_MEM, CHURN_MEM] if c in df.columns]
+
+     with tab3:
+        mem_cols = [c for c in [TOTAL_MEM, CONV_MEM, NEW_MEM, CHURN_MEM] if c in df_ch.columns]  # ✅ df → df_ch
         if not mem_cols:
             st.warning("회원 지표 컬럼을 찾지 못했습니다. (총회원수/누적전환회원/신규회원/탈퇴회원 헤더 확인 필요)")
         else:
             fig_mem = px.line(
-                df,
+                df_ch,   # ✅ df → df_ch
                 x="주차",
                 y=mem_cols,
                 markers=True,
@@ -472,13 +485,12 @@ try:
                 legend_title="지표",
                 template="plotly_white"
             )
-            fig_mem.add_vline(
-                x=selected_week,
-                line_width=2,
-                line_dash="dash",
-                line_color="red"
-            )
-            st.plotly_chart(fig_mem, use_container_width=True)
+    
+            if str(selected_week) in df_ch["주차"].astype(str).tolist():
+                fig_mem.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
+    
+            st.plotly_chart(fig_mem, use_container_width=True, key="channel_mem_line")
+
 
     # -----------------------------------------------------------------------------
     # [섹션 3] 규칙 기반 자동 요약 (선택 주차 기준)
