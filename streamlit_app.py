@@ -362,31 +362,6 @@ try:
             fig_n_app.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
         st.plotly_chart(fig_n_app, use_container_width=True)
 
-    
-    with tab_b:
-        st.markdown("#### 방송")
-        st.caption("선택 주차 기준 방송 PV/UV/앱다운로드 추이를 확인합니다")
-    
-        fig_b_pv = px.line(df2, x="주차", y=["방송_PV"], markers=True, title="방송 PV 추이")
-        fig_b_pv.update_layout(hovermode="x unified", xaxis_title=None, yaxis_title="PV", template="plotly_white")
-        if str(selected_week) in df2["주차"].astype(str).tolist():
-            fig_b_pv.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
-        st.plotly_chart(fig_b_pv, use_container_width=True)
-    
-        fig_b_uv = px.line(df2, x="주차", y=["방송_사용자"], markers=True, title="방송 UV 추이")
-        fig_b_uv.update_layout(hovermode="x unified", xaxis_title=None, yaxis_title="UV", template="plotly_white")
-        if str(selected_week) in df2["주차"].astype(str).tolist():
-            fig_b_uv.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
-        st.plotly_chart(fig_b_uv, use_container_width=True)
-    
-        fig_b_app = px.bar(df2, x="주차", y=["방송_앱다운로드"], title="방송 앱 다운로드 추이")
-        fig_b_app.update_layout(hovermode="x unified", xaxis_title=None, yaxis_title="다운로드", template="plotly_white")
-        if str(selected_week) in df2["주차"].astype(str).tolist():
-            fig_b_app.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
-        st.plotly_chart(fig_b_app, use_container_width=True)
-
-        
-    
         st.markdown("#### 🏷️ 주별 뉴스 키워드 TOP3")
         st.caption("선택 주차 기준 주요 키워드와 비중(%)을 표시합니다")
         
@@ -537,6 +512,30 @@ try:
                     )
                     fig_s.update_layout(template="plotly_white", legend_title_text=None)
                     st.plotly_chart(fig_s, use_container_width=True, key="news_acq_sessions_pie_fixed")
+
+
+    
+    with tab_b:
+        st.markdown("#### 방송")
+        st.caption("선택 주차 기준 방송 PV/UV/앱다운로드 추이를 확인합니다")
+    
+        fig_b_pv = px.line(df2, x="주차", y=["방송_PV"], markers=True, title="방송 PV 추이")
+        fig_b_pv.update_layout(hovermode="x unified", xaxis_title=None, yaxis_title="PV", template="plotly_white")
+        if str(selected_week) in df2["주차"].astype(str).tolist():
+            fig_b_pv.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
+        st.plotly_chart(fig_b_pv, use_container_width=True)
+    
+        fig_b_uv = px.line(df2, x="주차", y=["방송_사용자"], markers=True, title="방송 UV 추이")
+        fig_b_uv.update_layout(hovermode="x unified", xaxis_title=None, yaxis_title="UV", template="plotly_white")
+        if str(selected_week) in df2["주차"].astype(str).tolist():
+            fig_b_uv.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
+        st.plotly_chart(fig_b_uv, use_container_width=True)
+    
+        fig_b_app = px.bar(df2, x="주차", y=["방송_앱다운로드"], title="방송 앱 다운로드 추이")
+        fig_b_app.update_layout(hovermode="x unified", xaxis_title=None, yaxis_title="다운로드", template="plotly_white")
+        if str(selected_week) in df2["주차"].astype(str).tolist():
+            fig_b_app.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
+        st.plotly_chart(fig_b_app, use_container_width=True)
 
 
     # -----------------------------------------------------------------------------
