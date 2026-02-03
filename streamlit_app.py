@@ -333,72 +333,96 @@ try:
                 fig_kw.update_traces(textposition="outside")
                 st.plotly_chart(fig_kw, use_container_width=True)
 
-        st.markdown("#### 🧭 뉴스 유입 소스 (사용자/세션)")
-        st.caption("소스 순서: 전체 → 다이렉트 → 네이버 → 다음 → 구글 → 기타")
+        st.markdown("#### 뉴스 유입 소스 (사용자/세션)")
+        st.caption("소스: 다이렉트 / 네이버 / 다음 / 구글 / 기타 (전체는 KPI로만 표시)")
         
-        # 1) 원하는 표시 순서 고정
-        ordered_sources = ["전체", "다이렉트", "네이버", "다음", "구글", "기타"]
+        # 1) 표시 순서 (차트용: 전체 제외)
+        sources = ["다이렉트", "네이버", "다음", "구글", "기타"]
         
-        # 2) 컬럼 패턴(시트 컬럼명 규칙에 맞춰 조정 필요)
-        #    현재 Roze 코드 패턴: 뉴스_유입_{소스}_사용자 / 뉴스_유입_{소스}_세션
+        # 2) 색상 고정 (요청 반영)
+        # - Plotly는 색상 문자열을 받음(HEX 권장)
+        color_map = {
+            "네이버": "#2ECC71",     # 초록
+            "구글":   "#1F77B4",     # 파랑
+            "다음":   "#F1C40F",     # 노랑
+            "다이렉트": "#7FDBFF",   # 하늘색
+            "기타":   "#95A5A6",     # 회색
+        }
+        
+        def to_num(x):
+            try:
+                return float(str(x).replace(",", "").strip())
+            except Exception:
+                return 0.0
+        
+        # 3) 최신(선택 주차) row를 사용 (없으면 마지막 row)
+        tmp = df2[df2["주차"].astype(str) == str(selected_week)] if "주차" in df2.columns else df2
+        latest_row = tmp.iloc[-1] if len(tmp) else df2.iloc[-1]
+        
+        # 4) 소스별 사용자/세션 데이터 구성 (전체 제외)
         rows = []
-        for s in ordered_sources:
-            u = latest.get(f"뉴스_유입_{s}_사용자", 0)
-            se = latest.get(f"뉴스_유입_{s}_세션", 0)
-        
-            # 숫자형 안전 변환
-            try:
-                u = float(u)
-            except Exception:
-                u = 0.0
-            try:
-                se = float(se)
-            except Exception:
-                se = 0.0
-        
+        for s in sources:
+            u = to_num(latest_row.get(f"뉴스_유입_{s}_사용자", 0))
+            se = to_num(latest_row.get(f"뉴스_유입_{s}_세션", 0))
             rows.append({"유입소스": s, "사용자": u, "세션": se})
         
         acq_df = pd.DataFrame(rows)
         
-        # 3) (선택) 전부 0이면 안내
+        # 5) '전체' KPI 값: 원본에 전체가 있으면 그걸 우선 사용, 없으면 합계로 대체
+        #    (원본 시트에 전체 컬럼이 있든 없든 안정적으로 동작)
+        total_users_raw = latest_row.get("뉴스_유입_전체_사용자", None)
+        total_sessions_raw = latest_row.get("뉴스_유입_전체_세션", None)
+        
+        total_users = to_num(total_users_raw) if total_users_raw not in [None, ""] else acq_df["사용자"].sum()
+        total_sessions = to_num(total_sessions_raw) if total_sessions_raw not in [None, ""] else acq_df["세션"].sum()
+        
+        # 6) KPI 먼저 노출
+        k1, k2 = st.columns(2)
+        k1.metric("뉴스 유입 사용자(전체)", f"{int(total_users):,}")
+        k2.metric("뉴스 유입 세션(전체)", f"{int(total_sessions):,}")
+        
+        # 7) 차트 렌더
+        #    값이 전부 0이면 안내
         if acq_df["사용자"].sum() == 0 and acq_df["세션"].sum() == 0:
-            st.info("뉴스 유입 컬럼(뉴스_유입_XXX_사용자/세션)을 찾지 못했거나 값이 모두 0입니다. 시트 컬럼명을 확인해주세요")
+            st.info("뉴스 유입 데이터가 모두 0입니다. 컬럼명/값 타입(쉼표 포함 숫자 등)을 확인해주세요.")
         else:
             c1, c2 = st.columns(2)
         
-            # ✅ 사용자 기준: 막대(현행 유지) + 순서 고정 + '전체'만 레드
+            # ✅ 사용자 기준: 막대 (색상 고정)
             with c1:
                 fig_u = px.bar(
                     acq_df,
                     x="유입소스",
                     y="사용자",
                     title="사용자 기준",
-                    category_orders={"유입소스": ordered_sources},
+                    category_orders={"유입소스": sources},
                     color="유입소스",
-                    color_discrete_map={"전체": "red"}  # 전체만 레드, 나머지는 기본 팔레트
+                    color_discrete_map=color_map
                 )
                 fig_u.update_layout(
                     xaxis_title=None,
                     yaxis_title="사용자",
                     template="plotly_white",
-                    showlegend=False  # 색은 강조용이라 범례는 숨김(원하면 True)
+                    legend_title_text=None
                 )
-                st.plotly_chart(fig_u, use_container_width=True)
+                st.plotly_chart(fig_u, use_container_width=True, key="news_acq_users_bar_fixed")
         
-            # ✅ 세션 기준: 원형 차트(Pie) + 순서 고정 + '전체'만 레드
+            # ✅ 세션 기준: 파이 (색상 고정)
             with c2:
-                # Pie는 정렬이 중요해서 acq_df를 순서대로 유지
-                fig_s = px.pie(
-                    acq_df,
-                    names="유입소스",
-                    values="세션",
-                    title="세션 기준",
-                    category_orders={"유입소스": ordered_sources},
-                    color="유입소스",
-                    color_discrete_map={"전체": "red"}  # 전체만 레드
-                )
-                fig_s.update_layout(template="plotly_white")
-                st.plotly_chart(fig_s, use_container_width=True)
+                if acq_df["세션"].sum() == 0:
+                    st.info("세션 값이 모두 0이라 원형차트를 그릴 수 없습니다.")
+                else:
+                    fig_s = px.pie(
+                        acq_df,
+                        names="유입소스",
+                        values="세션",
+                        title="세션 기준",
+                        category_orders={"유입소스": sources},
+                        color="유입소스",
+                        color_discrete_map=color_map
+                    )
+                    fig_s.update_layout(template="plotly_white", legend_title_text=None)
+                    st.plotly_chart(fig_s, use_container_width=True, key="news_acq_sessions_pie_fixed")
 
 
     # -----------------------------------------------------------------------------
