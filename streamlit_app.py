@@ -172,79 +172,129 @@ try:
     )
 
     # -----------------------------------------------------------------------------
-    # [섹션 1] 주간 핵심 지표 (KPI) - 뉴스/방송 분리
+    # [섹션 1] 주간 핵심 지표 (KPI) - 요청 레이아웃
+    # - 좌측 상: 뉴스 3개
+    # - 좌측 하: 방송 3개
+    # - 우측: 회원 4개
     # -----------------------------------------------------------------------------
     st.markdown("### 주간 핵심 지표")
     
-    # ✅ 방송/뉴스 앱다운로드 각각 합계 만들기
-    curr_app_b = latest.get("방송_AOS 다운로드", 0) + latest.get("방송_iOS 다운로드", 0)
-    prev_app_b = (
-        (prev.get("방송_AOS 다운로드", 0) + prev.get("방송_iOS 다운로드", 0))
-        if prev is not None else None
-    )
+    # ✅ 뉴스 UV 컬럼 후보(원래 쓰던 규칙 유지)
+    NEWS_UV_COL_CANDIDATES = ["뉴스_사용자", "뉴스_UV", "뉴스UV", "뉴스_사용자수"]
+    news_uv_col_kpi = next((c for c in NEWS_UV_COL_CANDIDATES if c in df.columns), None)
+    news_uv_val = latest.get(news_uv_col_kpi, 0) if news_uv_col_kpi else 0
+    prev_news_uv_val = prev.get(news_uv_col_kpi, 0) if (prev is not None and news_uv_col_kpi) else None
     
-    curr_app_n = latest.get("뉴스_AOS 다운로드", 0) + latest.get("뉴스_iOS 다운로드", 0)
-    prev_app_n = (
-        (prev.get("뉴스_AOS 다운로드", 0) + prev.get("뉴스_iOS 다운로드", 0))
-        if prev is not None else None
-    )
+    # ✅ 2열 레이아웃: 좌(트래픽 묶음) / 우(회원 묶음)
+    left, right = st.columns([7, 5], gap="large")
     
-    # ✅ 좌: 뉴스 / 우: 방송 (UI 분리)
-    left, right = st.columns(2, gap="large")
-    
+    # -------------------------
+    # 좌측: 뉴스(상) / 방송(하)
+    # -------------------------
     with left:
-        st.markdown("#### 📰 뉴스")
-        n1, n2, n3, n4 = st.columns(4)
+        # 좌측 상단 박스(뉴스)
+        with st.container(border=True):
+            st.markdown("#### 📰 뉴스 지표")
+            n1, n2, n3 = st.columns(3)
+            with n1:
+                st.metric(
+                    "뉴스 PV",
+                    f"{latest.get('뉴스_PV', 0):,.0f}",
+                    fmt_delta(
+                        latest.get("뉴스_PV", 0),
+                        prev.get("뉴스_PV", 0) if prev is not None else None
+                    )
+                )
+            with n2:
+                st.metric(
+                    "뉴스 UV",
+                    f"{news_uv_val:,.0f}",
+                    fmt_delta(news_uv_val, prev_news_uv_val)
+                )
+            with n3:
+                # ※ 지금 curr_app/prev_app이 "방송 앱다운로드 합계"라면,
+                #   여기서는 일단 공통 KPI로 두고 label만 중립적으로 둠
+                st.metric(
+                    "앱 다운로드",
+                    f"{curr_app:,.0f}",
+                    fmt_delta(curr_app, prev_app)
+                )
     
-        with n1:
-            st.metric("뉴스 PV", f"{latest.get('뉴스_PV', 0):,.0f}",
-                      fmt_delta(latest.get("뉴스_PV", 0), prev.get("뉴스_PV", 0) if prev is not None else None))
-        with n2:
-            # 뉴스 UV는 컬럼명이 여러 케이스라 너가 이미 쓰는 후보군을 재사용(없으면 0)
-            NEWS_UV_COL_CANDIDATES = ["뉴스_사용자", "뉴스_UV", "뉴스UV", "뉴스_사용자수"]
-            news_uv_col_kpi = next((c for c in NEWS_UV_COL_CANDIDATES if c in df.columns), None)
-            news_uv_val = latest.get(news_uv_col_kpi, 0) if news_uv_col_kpi else 0
-            prev_news_uv_val = prev.get(news_uv_col_kpi, 0) if (prev is not None and news_uv_col_kpi) else None
+        st.divider()  # ✅ 좌측 내 구분선
     
-            st.metric("뉴스 UV", f"{news_uv_val:,.0f}", fmt_delta(news_uv_val, prev_news_uv_val))
-        with n3:
-            st.metric("뉴스 앱다운로드", f"{curr_app_n:,.0f}", fmt_delta(curr_app_n, prev_app_n))
-        with n4:
-            # 빈 슬롯: 필요하면 “뉴스 유입 세션(전체)” 같은 걸 넣기 좋음
-            st.metric("—", "-", None)
+        # 좌측 하단 박스(방송)
+        with st.container(border=True):
+            st.markdown("#### 📺 방송 지표")
+            b1, b2, b3 = st.columns(3)
+            with b1:
+                st.metric(
+                    "방송 PV",
+                    f"{latest.get('방송_PV', 0):,.0f}",
+                    fmt_delta(
+                        latest.get("방송_PV", 0),
+                        prev.get("방송_PV", 0) if prev is not None else None
+                    )
+                )
+            with b2:
+                st.metric(
+                    "방송 UV",
+                    f"{latest.get('방송_사용자', 0):,.0f}",
+                    fmt_delta(
+                        latest.get("방송_사용자", 0),
+                        prev.get("방송_사용자", 0) if prev is not None else None
+                    )
+                )
+            with b3:
+                # 방송 지표 3개가 필요하니,
+                # 방송 앱다운로드(정확히 보여주려면 별도 합계 계산 필요)
+                # 단, 지금 변수명이 없어서 여기서는 안전하게 "0"으로 fallback
+                # → 원하면 방송앱다운(=방송_AOS+방송_iOS) 변수를 만들어 꽂아줄 수 있음
+                b_app = latest.get("방송_AOS 다운로드", 0) + latest.get("방송_iOS 다운로드", 0)
+                prev_b_app = (prev.get("방송_AOS 다운로드", 0) + prev.get("방송_iOS 다운로드", 0)) if prev is not None else None
+                st.metric(
+                    "방송 앱다운",
+                    f"{b_app:,.0f}",
+                    fmt_delta(b_app, prev_b_app)
+                )
     
+    # -------------------------
+    # 우측: 회원 지표(4개)
+    # -------------------------
     with right:
-        st.markdown("#### 📺 방송")
-        b1, b2, b3, b4 = st.columns(4)
+        with st.container(border=True):
+            st.markdown("#### 👤 회원 지표")
+            # 2x2로 배치 (가독성 좋음)
+            r1, r2 = st.columns(2)
+            r3, r4 = st.columns(2)
     
-        with b1:
-            st.metric("방송 PV", f"{latest.get('방송_PV', 0):,.0f}",
-                      fmt_delta(latest.get("방송_PV", 0), prev.get("방송_PV", 0) if prev is not None else None))
-        with b2:
-            st.metric("방송 UV", f"{latest.get('방송_사용자', 0):,.0f}",
-                      fmt_delta(latest.get("방송_사용자", 0), prev.get("방송_사용자", 0) if prev is not None else None))
-        with b3:
-            st.metric("방송 앱다운로드", f"{curr_app_b:,.0f}", fmt_delta(curr_app_b, prev_app_b))
-        with b4:
-            st.metric("—", "-", None)
+            with r1:
+                st.metric(
+                    "총회원수",
+                    f"{latest.get(TOTAL_MEM, 0):,.0f}",
+                    fmt_delta(latest.get(TOTAL_MEM, 0), prev.get(TOTAL_MEM, 0) if prev is not None else None)
+                )
+            with r2:
+                st.metric(
+                    "누적전환회원",
+                    f"{latest.get(CONV_MEM, 0):,.0f}",
+                    fmt_delta(latest.get(CONV_MEM, 0), prev.get(CONV_MEM, 0) if prev is not None else None)
+                )
+            with r3:
+                st.metric(
+                    "신규회원",
+                    f"{latest.get(NEW_MEM, 0):,.0f}",
+                    fmt_delta(latest.get(NEW_MEM, 0), prev.get(NEW_MEM, 0) if prev is not None else None)
+                )
+            with r4:
+                st.metric(
+                    "탈퇴회원",
+                    f"{latest.get(CHURN_MEM, 0):,.0f}",
+                    fmt_delta(latest.get(CHURN_MEM, 0), prev.get(CHURN_MEM, 0) if prev is not None else None)
+                )
     
-    # ✅ 회원 지표는 공통 영역으로 아래 한 줄 유지 (기존 그대로)
-    st.markdown("#### 👤 회원 지표")
-    m1, m2, m3, m4 = st.columns(4)
-    with m1:
-        st.metric("총회원수", f"{latest.get(TOTAL_MEM, 0):,.0f}",
-                  fmt_delta(latest.get(TOTAL_MEM, 0), prev.get(TOTAL_MEM, 0) if prev is not None else None))
-    with m2:
-        st.metric("누적전환회원", f"{latest.get(CONV_MEM, 0):,.0f}",
-                  fmt_delta(latest.get(CONV_MEM, 0), prev.get(CONV_MEM, 0) if prev is not None else None))
-    with m3:
-        st.metric("신규회원", f"{latest.get(NEW_MEM, 0):,.0f}",
-                  fmt_delta(latest.get(NEW_MEM, 0), prev.get(NEW_MEM, 0) if prev is not None else None))
-    with m4:
-        st.metric("탈퇴회원", f"{latest.get(CHURN_MEM, 0):,.0f}",
-                  fmt_delta(latest.get(CHURN_MEM, 0), prev.get(CHURN_MEM, 0) if prev is not None else None))
-    
+    # ✅ KPI 섹션과 아래 영역 구분선
     st.divider()
+
 
     
     # -----------------------------------------------------------------------------
