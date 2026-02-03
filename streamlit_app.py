@@ -220,8 +220,6 @@ try:
                     fmt_delta(curr_app, prev_app)
                 )
     
-        st.divider()  # ✅ 좌측 내 구분선
-    
         # 좌측 하단 박스(방송)
         with st.container(border=True):
             st.markdown("#### 📺 방송 지표")
