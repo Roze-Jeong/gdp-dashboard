@@ -135,25 +135,42 @@ try:
     CHURN_MEM = "탈퇴회원"
 
     # -----------------------------------------------------------------------------
-    # [드릴다운] 주차 선택 (선택 주차에 따라 latest/prev 재정의)
+    # [드롭다운] 기준 주차 선택 (선택 주차에 따라 latest/prev 재정의)
     # -----------------------------------------------------------------------------
+    st.subheader("기준 주차")  # ✅ divider 위가 아니라, 여기부터 시작
+    
+    # ✅ 최신 주차가 위로 보이도록 정렬된 리스트 생성
+    weeks = df["주차"].astype(str).tolist()[::-1]
+    selected_week = st.selectbox("주차", options=weeks, index=0, key="selected_week")
+    
+    st.caption("※ 선택한 주차를 기준으로 모든 지표와 AI 분석 결과가 업데이트됩니다.")
+    
+    # ✅ 여기서 KPI 영역과 명확히 구분
     st.divider()
-    st.subheader("기준 주차")
-
-    weeks = df["주차"].astype(str).tolist()[::-1]  # 최신 주차가 위로
-    selected_week = st.selectbox("주차", options=weeks, index=0)
-
-    st.caption("※ 선택한 주차를 기준으로 모든 지표와 AI 분석 결과가 업데이트됩니다")
-
-    # 선택 주차 index 찾기
-    idx = df[df["주차"].astype(str) == str(selected_week)].index[0]
-
-    latest = df.loc[idx]
-    prev = df.loc[idx - 1] if idx > 0 else None
-
+    
+    # -----------------------------------------------------------------------------
+    # latest / prev 재정의
+    # -----------------------------------------------------------------------------
+    # df에서 선택 주차 row를 찾기
+    mask = df["주차"].astype(str) == str(selected_week)
+    if mask.any():
+        idx = df.index[mask][0]
+        latest = df.loc[idx]
+        prev = df.loc[idx - 1] if (idx - 1) in df.index else None
+    else:
+        # fallback (이론상 거의 안 탐)
+        latest = df.iloc[-1]
+        prev = df.iloc[-2] if len(df) > 1 else None
+    
+    # -----------------------------------------------------------------------------
     # 앱 다운로드 합계(선택 주차 기준)
+    # -----------------------------------------------------------------------------
     curr_app = latest.get("방송_AOS 다운로드", 0) + latest.get("방송_iOS 다운로드", 0)
-    prev_app = (prev.get("방송_AOS 다운로드", 0) + prev.get("방송_iOS 다운로드", 0)) if prev is not None else None
+    prev_app = (
+        (prev.get("방송_AOS 다운로드", 0) + prev.get("방송_iOS 다운로드", 0))
+        if prev is not None else None
+    )
+
 
     # -----------------------------------------------------------------------------
     # [섹션 1] 주간 핵심 지표 (KPI)
