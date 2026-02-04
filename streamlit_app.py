@@ -396,15 +396,14 @@ try:
                 st.plotly_chart(fig_s, use_container_width=True, key="news_acq_sessions_pie")
 
 
-    
         # 주별 뉴스 키워드 Top 3
         st.markdown("##### 주별 뉴스 키워드 TOP3")
         st.caption("선택 주차 기준 주요 키워드와 비중(%)")
-    
+        
         kw_cols = ["뉴스_키워드1순위", "뉴스_키워드2순위", "뉴스_키워드3순위"]
         kw_share_cols = ["뉴스_키워드1비중", "뉴스_키워드2비중", "뉴스_키워드3비중"]
         missing = [c for c in kw_cols + kw_share_cols if c not in df2.columns]
-    
+        
         if missing:
             st.info(f"키워드 TOP3 컬럼을 찾지 못했습니다: {', '.join(missing)}")
         else:
@@ -412,27 +411,33 @@ try:
             for i in range(3):
                 kw = str(latest_row.get(kw_cols[i], "")).strip()
                 share_raw = latest_row.get(kw_share_cols[i], 0)
-    
+        
                 if not kw or kw.lower() == "nan":
                     continue
-    
+        
                 try:
                     share_val = float(str(share_raw).replace(",", ""))
                 except Exception:
                     share_val = 0.0
-    
-                rows_kw.append({"순위": f"{i+1}위", "키워드": kw, "비중(%)": share_val})
-    
+        
+                rows_kw.append({
+                    "순위": f"{i+1}위",
+                    "키워드": kw,
+                    "비중(%)": share_val
+                })
+        
             if not rows_kw:
                 st.caption("키워드 값이 비어 있습니다")
             else:
                 top_df = pd.DataFrame(rows_kw)
-                st.dataframe(top_df, use_container_width=True, hide_index=True)
-    
-                fig_kw = px.bar(top_df, x="순위", y="비중(%)", text="키워드", title="키워드 비중(%)")
-                fig_kw.update_layout(xaxis_title=None, yaxis_title="비중(%)", template="plotly_white")
-                fig_kw.update_traces(textposition="outside")
-                st.plotly_chart(fig_kw, use_container_width=True, key="news_kw_top3_bar")
+        
+                # ✅ 표만 유지
+                st.dataframe(
+                    top_df,
+                    use_container_width=True,
+                    hide_index=True
+                )
+
     
     # -------------------------
     # 방송
