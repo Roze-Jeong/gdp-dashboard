@@ -420,44 +420,44 @@ try:
         
             # ✅ 사용자 기준: 막대 (색상 고정)
             with c1:
-            # 1) 퍼센트 계산
-            total_users_sum = acq_df["사용자"].sum()
-            acq_df["비중(%)"] = (
-                acq_df["사용자"] / total_users_sum * 100
-            ).round(1)
-            
-            # 2) 막대 차트 + % 텍스트
-            fig_u = px.bar(
-                acq_df,
-                x="유입소스",
-                y="사용자",
-                title="사용자 기준",
-                category_orders={"유입소스": sources},
-                color="유입소스",
-                color_discrete_map=color_map,
-                text=acq_df["비중(%)"].astype(str) + "%"  # ✅ 막대 위 % 표시
-            )
-            
-            fig_u.update_traces(
-                textposition="outside",     # 막대 위
-                cliponaxis=False            # 상단 잘림 방지
-            )
-            
-            fig_u.update_layout(
-                xaxis_title=None,
-                yaxis_title="사용자",
-                template="plotly_white",
-                legend_title_text=None
-            )
-
-
+                # 1) 퍼센트 계산
+                total_users_sum = acq_df["사용자"].sum()
+                acq_df["비중(%)"] = (
+                    acq_df["사용자"] / total_users_sum * 100
+                ).round(1)
+                
+                # 2) 막대 차트 + % 텍스트
+                fig_u = px.bar(
+                    acq_df,
+                    x="유입소스",
+                    y="사용자",
+                    title="사용자 기준",
+                    category_orders={"유입소스": sources},
+                    color="유입소스",
+                    color_discrete_map=color_map,
+                    text=acq_df["비중(%)"].astype(str) + "%"  # ✅ 막대 위 % 표시
+                )
+                
+                fig_u.update_traces(
+                    textposition="outside",     # 막대 위
+                    cliponaxis=False            # 상단 잘림 방지
+                )
+                
                 fig_u.update_layout(
                     xaxis_title=None,
                     yaxis_title="사용자",
                     template="plotly_white",
                     legend_title_text=None
                 )
-                st.plotly_chart(fig_u, use_container_width=True, key="news_acq_users_bar_fixed")
+    
+    
+                    fig_u.update_layout(
+                        xaxis_title=None,
+                        yaxis_title="사용자",
+                        template="plotly_white",
+                        legend_title_text=None
+                    )
+                    st.plotly_chart(fig_u, use_container_width=True, key="news_acq_users_bar_fixed")
         
             # ✅ 세션 기준: 파이 (색상 고정)
             with c2:
