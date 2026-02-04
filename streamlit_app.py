@@ -472,7 +472,7 @@ try:
     st.header("채널별 트래픽 추이")
     
     # - 조회 기간
-    st.markdown("#### ⏱ 조회 기간")
+    st.markdown("##### 조회 기간")
     range_label_ch = st.radio(
         "조회 기간 (채널별 추이)",
         options=["최근 1년", "최근 6개월", "최근 3개월"],
