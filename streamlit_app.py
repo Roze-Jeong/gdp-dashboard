@@ -133,192 +133,113 @@ try:
     CONV_MEM  = "누적전환회원"
     NEW_MEM   = "신규회원"
     CHURN_MEM = "탈퇴회원"
-
     # -----------------------------------------------------------------------------
-    # [드롭다운] 기준 주차 선택 (선택 주차에 따라 latest/prev 재정의)
+    # * 기준 주차
     # -----------------------------------------------------------------------------
-    st.subheader("기준 주차")  # ✅ divider 위가 아니라, 여기부터 시작
+    st.header("기준 주차")
     
-    # ✅ 최신 주차가 위로 보이도록 정렬된 리스트 생성
     weeks = df["주차"].astype(str).tolist()[::-1]
     selected_week = st.selectbox("주차", options=weeks, index=0, key="selected_week")
+    st.caption("※ 선택한 주차를 기준으로 모든 지표와 AI 분석 결과가 업데이트됩니다")
     
-    st.caption("※ 선택한 주차를 기준으로 모든 지표와 AI 분석 결과가 업데이트됩니다.")
-    
-    # ✅ 여기서 KPI 영역과 명확히 구분
-    st.divider()
-    
-    # -----------------------------------------------------------------------------
     # latest / prev 재정의
-    # -----------------------------------------------------------------------------
-    # df에서 선택 주차 row를 찾기
     mask = df["주차"].astype(str) == str(selected_week)
     if mask.any():
         idx = df.index[mask][0]
         latest = df.loc[idx]
         prev = df.loc[idx - 1] if (idx - 1) in df.index else None
     else:
-        # fallback (이론상 거의 안 탐)
         latest = df.iloc[-1]
         prev = df.iloc[-2] if len(df) > 1 else None
     
-    # -----------------------------------------------------------------------------
-    # 앱 다운로드 합계(선택 주차 기준)
-    # -----------------------------------------------------------------------------
+    # 앱 다운로드 합계(선택 주차 기준) - 현재 방송 기준
     curr_app = latest.get("방송_AOS 다운로드", 0) + latest.get("방송_iOS 다운로드", 0)
     prev_app = (
         (prev.get("방송_AOS 다운로드", 0) + prev.get("방송_iOS 다운로드", 0))
         if prev is not None else None
     )
-
-    # -----------------------------------------------------------------------------
-    # [섹션 1] 주간 핵심 지표 (KPI) - 요청 레이아웃
-    # - 좌측 상: 뉴스 3개
-    # - 좌측 하: 방송 3개
-    # - 우측: 회원 4개
-    # -----------------------------------------------------------------------------
-    st.markdown("### 주간 핵심 지표")
     
-    # ✅ 뉴스 UV 컬럼 후보(원래 쓰던 규칙 유지)
+    # -----------------------------------------------------------------------------
+    # *** 주간 핵심 지표
+    # -----------------------------------------------------------------------------
+    st.divider()
+    st.header("주간 핵심 지표")
+    
+    # ** 뉴스 지표 / 방송 지표 / 회원 지표 (박스 UI 유지)
     NEWS_UV_COL_CANDIDATES = ["뉴스_사용자", "뉴스_UV", "뉴스UV", "뉴스_사용자수"]
     news_uv_col_kpi = next((c for c in NEWS_UV_COL_CANDIDATES if c in df.columns), None)
     news_uv_val = latest.get(news_uv_col_kpi, 0) if news_uv_col_kpi else 0
     prev_news_uv_val = prev.get(news_uv_col_kpi, 0) if (prev is not None and news_uv_col_kpi) else None
     
-    # ✅ 2열 레이아웃: 좌(트래픽 묶음) / 우(회원 묶음)
     left, right = st.columns([7, 5], gap="large")
     
-    # -------------------------
-    # 좌측: 뉴스(상) / 방송(하)
-    # -------------------------
     with left:
-        # 좌측 상단 박스(뉴스)
         with st.container(border=True):
-            st.markdown("#### 📰 뉴스 지표")
+            st.subheader("뉴스 지표")
             n1, n2, n3 = st.columns(3)
             with n1:
-                st.metric(
-                    "뉴스 PV",
-                    f"{latest.get('뉴스_PV', 0):,.0f}",
-                    fmt_delta(
-                        latest.get("뉴스_PV", 0),
-                        prev.get("뉴스_PV", 0) if prev is not None else None
-                    )
-                )
+                st.metric("뉴스 PV", f"{latest.get('뉴스_PV', 0):,.0f}",
+                          fmt_delta(latest.get("뉴스_PV", 0), prev.get("뉴스_PV", 0) if prev is not None else None))
             with n2:
-                st.metric(
-                    "뉴스 UV",
-                    f"{news_uv_val:,.0f}",
-                    fmt_delta(news_uv_val, prev_news_uv_val)
-                )
+                st.metric("뉴스 UV", f"{news_uv_val:,.0f}", fmt_delta(news_uv_val, prev_news_uv_val))
             with n3:
-                # ※ 지금 curr_app/prev_app이 "방송 앱다운로드 합계"라면,
-                #   여기서는 일단 공통 KPI로 두고 label만 중립적으로 둠
-                st.metric(
-                    "앱 다운로드",
-                    f"{curr_app:,.0f}",
-                    fmt_delta(curr_app, prev_app)
-                )
+                st.metric("앱 다운로드", f"{curr_app:,.0f}", fmt_delta(curr_app, prev_app))
     
-        # 좌측 하단 박스(방송)
+        # (요청 반영) 뉴스/방송 사이 divider 없애고, 여백만
+        st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
+    
         with st.container(border=True):
-            st.markdown("#### 📺 방송 지표")
+            st.subheader("방송 지표")
             b1, b2, b3 = st.columns(3)
             with b1:
-                st.metric(
-                    "방송 PV",
-                    f"{latest.get('방송_PV', 0):,.0f}",
-                    fmt_delta(
-                        latest.get("방송_PV", 0),
-                        prev.get("방송_PV", 0) if prev is not None else None
-                    )
-                )
+                st.metric("방송 PV", f"{latest.get('방송_PV', 0):,.0f}",
+                          fmt_delta(latest.get("방송_PV", 0), prev.get("방송_PV", 0) if prev is not None else None))
             with b2:
-                st.metric(
-                    "방송 UV",
-                    f"{latest.get('방송_사용자', 0):,.0f}",
-                    fmt_delta(
-                        latest.get("방송_사용자", 0),
-                        prev.get("방송_사용자", 0) if prev is not None else None
-                    )
-                )
+                st.metric("방송 UV", f"{latest.get('방송_사용자', 0):,.0f}",
+                          fmt_delta(latest.get("방송_사용자", 0), prev.get("방송_사용자", 0) if prev is not None else None))
             with b3:
-                # 방송 지표 3개가 필요하니,
-                # 방송 앱다운로드(정확히 보여주려면 별도 합계 계산 필요)
-                # 단, 지금 변수명이 없어서 여기서는 안전하게 "0"으로 fallback
-                # → 원하면 방송앱다운(=방송_AOS+방송_iOS) 변수를 만들어 꽂아줄 수 있음
                 b_app = latest.get("방송_AOS 다운로드", 0) + latest.get("방송_iOS 다운로드", 0)
                 prev_b_app = (prev.get("방송_AOS 다운로드", 0) + prev.get("방송_iOS 다운로드", 0)) if prev is not None else None
-                st.metric(
-                    "방송 앱다운",
-                    f"{b_app:,.0f}",
-                    fmt_delta(b_app, prev_b_app)
-                )
+                st.metric("방송 앱다운", f"{b_app:,.0f}", fmt_delta(b_app, prev_b_app))
     
-    # -------------------------
-    # 우측: 회원 지표(4개)
-    # -------------------------
     with right:
         with st.container(border=True):
-            st.markdown("#### 👤 회원 지표")
-            # 2x2로 배치 (가독성 좋음)
+            st.subheader("회원 지표")
             r1, r2 = st.columns(2)
             r3, r4 = st.columns(2)
-    
             with r1:
-                st.metric(
-                    "총회원수",
-                    f"{latest.get(TOTAL_MEM, 0):,.0f}",
-                    fmt_delta(latest.get(TOTAL_MEM, 0), prev.get(TOTAL_MEM, 0) if prev is not None else None)
-                )
+                st.metric("총회원수", f"{latest.get(TOTAL_MEM, 0):,.0f}",
+                          fmt_delta(latest.get(TOTAL_MEM, 0), prev.get(TOTAL_MEM, 0) if prev is not None else None))
             with r2:
-                st.metric(
-                    "누적전환회원",
-                    f"{latest.get(CONV_MEM, 0):,.0f}",
-                    fmt_delta(latest.get(CONV_MEM, 0), prev.get(CONV_MEM, 0) if prev is not None else None)
-                )
+                st.metric("누적전환회원", f"{latest.get(CONV_MEM, 0):,.0f}",
+                          fmt_delta(latest.get(CONV_MEM, 0), prev.get(CONV_MEM, 0) if prev is not None else None))
             with r3:
-                st.metric(
-                    "신규회원",
-                    f"{latest.get(NEW_MEM, 0):,.0f}",
-                    fmt_delta(latest.get(NEW_MEM, 0), prev.get(NEW_MEM, 0) if prev is not None else None)
-                )
+                st.metric("신규회원", f"{latest.get(NEW_MEM, 0):,.0f}",
+                          fmt_delta(latest.get(NEW_MEM, 0), prev.get(NEW_MEM, 0) if prev is not None else None))
             with r4:
-                st.metric(
-                    "탈퇴회원",
-                    f"{latest.get(CHURN_MEM, 0):,.0f}",
-                    fmt_delta(latest.get(CHURN_MEM, 0), prev.get(CHURN_MEM, 0) if prev is not None else None)
-                )
+                st.metric("탈퇴회원", f"{latest.get(CHURN_MEM, 0):,.0f}",
+                          fmt_delta(latest.get(CHURN_MEM, 0), prev.get(CHURN_MEM, 0) if prev is not None else None))
     
-    # ✅ KPI 섹션과 아래 영역 구분선
+    # -----------------------------------------------------------------------------
+    # *** 방송/뉴스 상세 지표
+    # -----------------------------------------------------------------------------
     st.divider()
-
-
+    st.header("방송/뉴스 상세 지표")
     
-    # -----------------------------------------------------------------------------
-    # [추가 섹션] KPI 아래: 방송/뉴스 상세 탭 + 기간 선택
-    # -----------------------------------------------------------------------------
-    st.subheader("방송/뉴스 상세 보기")
-    
-    # ✅ 기간 선택 (탭보다 위에 있어야 탭 전체에 적용)
-    st.markdown("### ⏱ 조회 기간")
-    
+    # - 조회기간
+    st.markdown("#### ⏱ 조회 기간")
     range_label = st.radio(
         "조회 기간",
         options=["최근 1년", "최근 6개월", "최근 3개월"],
         horizontal=True,
         index=0,
         key="range_label_main",
-        label_visibility="collapsed"  # ✅ 라벨 숨김(중복 제거)
+        label_visibility="collapsed"
     )
-
     
     weeks_map = {"최근 1년": 52, "최근 6개월": 26, "최근 3개월": 13}
     n_weeks = weeks_map[range_label]
-    
-    df_range = df.tail(n_weeks).copy()
-    df2 = df_range.copy()
-
+    df2 = df.tail(n_weeks).copy()
     
     # 파생 컬럼 생성
     if "방송_AOS 다운로드" in df2.columns and "방송_iOS 다운로드" in df2.columns:
@@ -326,7 +247,6 @@ try:
     else:
         df2["방송_앱다운로드"] = 0
     
-    NEWS_UV_COL_CANDIDATES = ["뉴스_사용자", "뉴스_UV", "뉴스UV", "뉴스_사용자수"]
     news_uv_col = next((c for c in NEWS_UV_COL_CANDIDATES if c in df2.columns), None)
     
     if "뉴스_AOS 다운로드" in df2.columns and "뉴스_iOS 다운로드" in df2.columns:
@@ -334,343 +254,251 @@ try:
     else:
         df2["뉴스_앱다운로드"] = 0
     
-    # ✅ 탭 순서: 방송 먼저
+    # [뉴스] [방송]
     tab_n, tab_b = st.tabs(["뉴스", "방송"])
-
-    with tab_n:
-        st.markdown("#### 뉴스")
-        st.caption("선택 주차 기준 뉴스 PV/UV/앱다운로드 · 키워드 · 유입을 확인합니다")
     
-        fig_n_pv = px.line(df2, x="주차", y=["뉴스_PV"], markers=True, title="뉴스 PV 추이")
+    # -------------------------
+    # ** 뉴스
+    # -------------------------
+    with tab_n:
+        st.subheader("뉴스")
+    
+        # ㄴ 뉴스 PV 추이
+        st.markdown("##### 뉴스 PV 추이")
+        fig_n_pv = px.line(df2, x="주차", y=["뉴스_PV"], markers=True, title=None)
         fig_n_pv.update_layout(hovermode="x unified", xaxis_title=None, yaxis_title="PV", template="plotly_white")
         if str(selected_week) in df2["주차"].astype(str).tolist():
             fig_n_pv.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
-        st.plotly_chart(fig_n_pv, use_container_width=True)
+        st.plotly_chart(fig_n_pv, use_container_width=True, key="news_pv_line")
     
+        # ㄴ 뉴스 UV 추이
+        st.markdown("##### 뉴스 UV 추이")
         if news_uv_col:
-            fig_n_uv = px.line(df2, x="주차", y=[news_uv_col], markers=True, title="뉴스 UV 추이")
+            fig_n_uv = px.line(df2, x="주차", y=[news_uv_col], markers=True, title=None)
             fig_n_uv.update_layout(hovermode="x unified", xaxis_title=None, yaxis_title="UV", template="plotly_white")
             if str(selected_week) in df2["주차"].astype(str).tolist():
                 fig_n_uv.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
-            st.plotly_chart(fig_n_uv, use_container_width=True)
+            st.plotly_chart(fig_n_uv, use_container_width=True, key="news_uv_line")
         else:
             st.info("뉴스 UV 컬럼을 찾지 못했습니다 (예: 뉴스_사용자)")
     
-        fig_n_app = px.bar(df2, x="주차", y=["뉴스_앱다운로드"], title="뉴스 앱 다운로드 추이")
+        # ㄴ 뉴스 앱 다운로드 추이
+        st.markdown("##### 뉴스 앱 다운로드 추이")
+        fig_n_app = px.bar(df2, x="주차", y=["뉴스_앱다운로드"], title=None)
         fig_n_app.update_layout(hovermode="x unified", xaxis_title=None, yaxis_title="다운로드", template="plotly_white")
         if str(selected_week) in df2["주차"].astype(str).tolist():
             fig_n_app.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
-        st.plotly_chart(fig_n_app, use_container_width=True)
-
-
-        st.markdown("#### 뉴스 유입 소스 (사용자/세션)")
-        st.caption("소스: 다이렉트 / 네이버 / 다음 / 구글 / 기타 (전체는 KPI로만 표시)")
-        
-        # 1) 표시 순서 (차트용: 전체 제외)
+        st.plotly_chart(fig_n_app, use_container_width=True, key="news_app_bar")
+    
+        # ㄴ 뉴스 유입소스
+        st.markdown("##### 뉴스 유입 소스")
+        st.caption("소스: 다이렉트 / 네이버 / 다음 / 구글 / 기타  |  전체는 KPI로만 표시")
+    
         sources = ["다이렉트", "네이버", "다음", "구글", "기타"]
-        
-        # 2) 색상 고정 (요청 반영)
-        # - Plotly는 색상 문자열을 받음(HEX 권장)
         color_map = {
-            "네이버": "#2ECC71",     # 초록
-            "구글":   "#1F77B4",     # 파랑
-            "다음":   "#F1C40F",     # 노랑
-            "다이렉트": "#7FDBFF",   # 하늘색
-            "기타":   "#95A5A6",     # 회색
+            "네이버": "#2ECC71",
+            "구글": "#1F77B4",
+            "다음": "#F1C40F",
+            "다이렉트": "#7FDBFF",
+            "기타": "#95A5A6",
         }
-        
+    
         def to_num(x):
             try:
                 return float(str(x).replace(",", "").strip())
             except Exception:
                 return 0.0
-        
-        # 3) 최신(선택 주차) row를 사용 (없으면 마지막 row)
+    
         tmp = df2[df2["주차"].astype(str) == str(selected_week)] if "주차" in df2.columns else df2
         latest_row = tmp.iloc[-1] if len(tmp) else df2.iloc[-1]
-        
-        # 4) 소스별 사용자/세션 데이터 구성 (전체 제외)
+    
         rows = []
         for s in sources:
             u = to_num(latest_row.get(f"뉴스_유입_{s}_사용자", 0))
             se = to_num(latest_row.get(f"뉴스_유입_{s}_세션", 0))
             rows.append({"유입소스": s, "사용자": u, "세션": se})
-        
         acq_df = pd.DataFrame(rows)
-        
-        # 5) '전체' KPI 값: 원본에 전체가 있으면 그걸 우선 사용, 없으면 합계로 대체
-        #    (원본 시트에 전체 컬럼이 있든 없든 안정적으로 동작)
+    
         total_users_raw = latest_row.get("뉴스_유입_전체_사용자", None)
         total_sessions_raw = latest_row.get("뉴스_유입_전체_세션", None)
-        
         total_users = to_num(total_users_raw) if total_users_raw not in [None, ""] else acq_df["사용자"].sum()
         total_sessions = to_num(total_sessions_raw) if total_sessions_raw not in [None, ""] else acq_df["세션"].sum()
-        
-        # 6) KPI 먼저 노출
+    
+        # ㄴ 뉴스 유입 사용자 (전체/채널별)
+        st.markdown("###### 뉴스 유입 사용자")
         k1, k2 = st.columns(2)
-        k1.metric("뉴스 유입 사용자(전체)", f"{int(total_users):,}")
-        k2.metric("뉴스 유입 세션(전체)", f"{int(total_sessions):,}")
-        
-        # 7) 차트 렌더
-        #    값이 전부 0이면 안내
-        if acq_df["사용자"].sum() == 0 and acq_df["세션"].sum() == 0:
-            st.info("뉴스 유입 데이터가 모두 0입니다. 컬럼명/값 타입(쉼표 포함 숫자 등)을 확인해주세요.")
-        else:
-            c1, c2 = st.columns(2)
-        
-            # ✅ 사용자 기준: 막대 (색상 고정)
-            with c1:
-                # 1) 퍼센트 계산
-                total_users_sum = acq_df["사용자"].sum()
-                acq_df["비중(%)"] = (
-                    acq_df["사용자"] / total_users_sum * 100
-                ).round(1)
-                
-                # 2) 막대 차트 + % 텍스트
-                fig_u = px.bar(
+        k1.metric("전체", f"{int(total_users):,}")
+        k2.metric("채널 합계", f"{int(acq_df['사용자'].sum()):,}")
+    
+        c1, c2 = st.columns(2)
+    
+        with c1:
+            total_users_sum = acq_df["사용자"].sum()
+            if total_users_sum > 0:
+                acq_df["사용자_비중(%)"] = (acq_df["사용자"] / total_users_sum * 100).round(1)
+            else:
+                acq_df["사용자_비중(%)"] = 0.0
+    
+            fig_u = px.bar(
+                acq_df,
+                x="유입소스",
+                y="사용자",
+                title="채널별 사용자",
+                category_orders={"유입소스": sources},
+                color="유입소스",
+                color_discrete_map=color_map,
+                text=acq_df["사용자_비중(%)"].astype(str) + "%"
+            )
+            fig_u.update_traces(textposition="outside", cliponaxis=False)
+            fig_u.update_layout(xaxis_title=None, yaxis_title="사용자", template="plotly_white", legend_title_text=None)
+            st.plotly_chart(fig_u, use_container_width=True, key="news_acq_users_bar_pct")
+    
+        # ㄴ 뉴스 유입 세션 (전체/채널별)
+        st.markdown("###### 뉴스 유입 세션")
+        k3, k4 = st.columns(2)
+        k3.metric("전체", f"{int(total_sessions):,}")
+        k4.metric("채널 합계", f"{int(acq_df['세션'].sum()):,}")
+    
+        with c2:
+            if acq_df["세션"].sum() == 0:
+                st.info("세션 값이 모두 0이라 원형차트를 그릴 수 없습니다")
+            else:
+                fig_s = px.pie(
                     acq_df,
-                    x="유입소스",
-                    y="사용자",
-                    title="사용자 기준",
+                    names="유입소스",
+                    values="세션",
+                    title="채널별 세션",
                     category_orders={"유입소스": sources},
                     color="유입소스",
-                    color_discrete_map=color_map,
-                    text=acq_df["비중(%)"].astype(str) + "%"  # ✅ 막대 위 % 표시
+                    color_discrete_map=color_map
                 )
-                
-                fig_u.update_traces(
-                    textposition="outside",     # 막대 위
-                    cliponaxis=False            # 상단 잘림 방지
-                )
-                
-                fig_u.update_layout(
-                    xaxis_title=None,
-                    yaxis_title="사용자",
-                    template="plotly_white",
-                    legend_title_text=None
-                )
+                fig_s.update_layout(template="plotly_white", legend_title_text=None)
+                st.plotly_chart(fig_s, use_container_width=True, key="news_acq_sessions_pie_fixed")
     
+        # ㄴ 주별 뉴스 키워드 Top 3
+        st.markdown("##### 주별 뉴스 키워드 TOP3")
+        st.caption("선택 주차 기준 주요 키워드와 비중(%)")
     
-                fig_u.update_layout(
-                    xaxis_title=None,
-                    yaxis_title="사용자",
-                    template="plotly_white",
-                    legend_title_text=None
-                )
-                st.plotly_chart(fig_u, use_container_width=True, key="news_acq_users_bar_fixed")
-        
-            # ✅ 세션 기준: 파이 (색상 고정)
-            with c2:
-                if acq_df["세션"].sum() == 0:
-                    st.info("세션 값이 모두 0이라 원형차트를 그릴 수 없습니다.")
-                else:
-                    fig_s = px.pie(
-                        acq_df,
-                        names="유입소스",
-                        values="세션",
-                        title="세션 기준",
-                        category_orders={"유입소스": sources},
-                        color="유입소스",
-                        color_discrete_map=color_map
-                    )
-                    fig_s.update_layout(template="plotly_white", legend_title_text=None)
-                    st.plotly_chart(fig_s, use_container_width=True, key="news_acq_sessions_pie_fixed")
-
-            st.markdown("#### 🏷️ 주별 뉴스 키워드 TOP3")
-        st.caption("선택 주차 기준 주요 키워드와 비중(%)을 표시합니다")
-        
-        # ✅ 변경된 컬럼명으로 맞춤
         kw_cols = ["뉴스_키워드1순위", "뉴스_키워드2순위", "뉴스_키워드3순위"]
         kw_share_cols = ["뉴스_키워드1비중", "뉴스_키워드2비중", "뉴스_키워드3비중"]
-        
-        # ✅ df 말고 df2 기준으로 체크해야 탭/기간필터가 일관됨
         missing = [c for c in kw_cols + kw_share_cols if c not in df2.columns]
+    
         if missing:
             st.info(f"키워드 TOP3 컬럼을 찾지 못했습니다: {', '.join(missing)}")
         else:
-            # latest 대신 선택주차 row를 확정하는게 안전 (없으면 마지막 주차)
-            tmp = df2[df2["주차"].astype(str) == str(selected_week)] if "주차" in df2.columns else df2
-            latest_row = tmp.iloc[-1] if len(tmp) else df2.iloc[-1]
-        
-            rows = []
+            rows_kw = []
             for i in range(3):
                 kw = str(latest_row.get(kw_cols[i], "")).strip()
                 share_raw = latest_row.get(kw_share_cols[i], 0)
-        
+    
                 if not kw or kw.lower() == "nan":
                     continue
-        
+    
                 try:
                     share_val = float(str(share_raw).replace(",", ""))
                 except Exception:
                     share_val = 0.0
-        
-                rows.append({"순위": f"{i+1}위", "키워드": kw, "비중(%)": share_val})
-        
-            if not rows:
+    
+                rows_kw.append({"순위": f"{i+1}위", "키워드": kw, "비중(%)": share_val})
+    
+            if not rows_kw:
                 st.caption("키워드 값이 비어 있습니다")
             else:
-                top_df = pd.DataFrame(rows)
+                top_df = pd.DataFrame(rows_kw)
                 st.dataframe(top_df, use_container_width=True, hide_index=True)
-        
+    
                 fig_kw = px.bar(top_df, x="순위", y="비중(%)", text="키워드", title="키워드 비중(%)")
                 fig_kw.update_layout(xaxis_title=None, yaxis_title="비중(%)", template="plotly_white")
                 fig_kw.update_traces(textposition="outside")
                 st.plotly_chart(fig_kw, use_container_width=True, key="news_kw_top3_bar")
-
-        
-                st.dataframe(top_df, use_container_width=True, hide_index=True)
-        
-                fig_kw = px.bar(
-                    top_df,
-                    x="순위",
-                    y="비중(%)",
-                    text="키워드",
-                    title="키워드 비중(%)"
-                )
-                fig_kw.update_layout(
-                    xaxis_title=None,
-                    yaxis_title="비중(%)",
-                    template="plotly_white"
-                )
-                fig_kw.update_traces(textposition="outside")
-                st.plotly_chart(fig_kw, use_container_width=True)
-
     
+    # -------------------------
+    # ** 방송
+    # -------------------------
     with tab_b:
-        st.markdown("#### 방송")
-        st.caption("선택 주차 기준 방송 PV/UV/앱다운로드 추이를 확인합니다")
+        st.subheader("방송")
     
-        fig_b_pv = px.line(df2, x="주차", y=["방송_PV"], markers=True, title="방송 PV 추이")
+        st.markdown("##### 방송 PV 추이")
+        fig_b_pv = px.line(df2, x="주차", y=["방송_PV"], markers=True, title=None)
         fig_b_pv.update_layout(hovermode="x unified", xaxis_title=None, yaxis_title="PV", template="plotly_white")
         if str(selected_week) in df2["주차"].astype(str).tolist():
             fig_b_pv.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
-        st.plotly_chart(fig_b_pv, use_container_width=True)
+        st.plotly_chart(fig_b_pv, use_container_width=True, key="b_pv_line")
     
-        fig_b_uv = px.line(df2, x="주차", y=["방송_사용자"], markers=True, title="방송 UV 추이")
+        st.markdown("##### 방송 UV 추이")
+        fig_b_uv = px.line(df2, x="주차", y=["방송_사용자"], markers=True, title=None)
         fig_b_uv.update_layout(hovermode="x unified", xaxis_title=None, yaxis_title="UV", template="plotly_white")
         if str(selected_week) in df2["주차"].astype(str).tolist():
             fig_b_uv.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
-        st.plotly_chart(fig_b_uv, use_container_width=True)
+        st.plotly_chart(fig_b_uv, use_container_width=True, key="b_uv_line")
     
-        fig_b_app = px.bar(df2, x="주차", y=["방송_앱다운로드"], title="방송 앱 다운로드 추이")
+        st.markdown("##### 방송 앱 다운로드 추이")
+        fig_b_app = px.bar(df2, x="주차", y=["방송_앱다운로드"], title=None)
         fig_b_app.update_layout(hovermode="x unified", xaxis_title=None, yaxis_title="다운로드", template="plotly_white")
         if str(selected_week) in df2["주차"].astype(str).tolist():
             fig_b_app.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
-        st.plotly_chart(fig_b_app, use_container_width=True)
-
-
+        st.plotly_chart(fig_b_app, use_container_width=True, key="b_app_bar")
+    
     # -----------------------------------------------------------------------------
-    # [섹션 2] 차트 분석 (선택 주차 기준선 표시)
+    # *** 채널별 트래픽 추이
     # -----------------------------------------------------------------------------
-    st.subheader("채널별 트래픽 추이 분석")
-
-    # ✅ [섹션2 전용] 조회 기간 필터 (3/6/12개월)
-    st.markdown("### ⏱ 조회 기간 (채널별 추이)")
+    st.divider()
+    st.header("채널별 트래픽 추이")
+    
+    # - 조회 기간
+    st.markdown("#### ⏱ 조회 기간")
     range_label_ch = st.radio(
         "조회 기간 (채널별 추이)",
         options=["최근 1년", "최근 6개월", "최근 3개월"],
         horizontal=True,
         index=0,
-        key="range_label_channel"  # 🔥 섹션1과 key 충돌 방지
+        key="range_label_channel",
+        label_visibility="collapsed"
     )
     
     weeks_map = {"최근 1년": 52, "최근 6개월": 26, "최근 3개월": 13}
-    n_weeks_ch = weeks_map[range_label_ch]
+    df_ch = df.tail(weeks_map[range_label_ch]).copy()
     
-    df_ch = df.tail(n_weeks_ch).copy()
-
-    tab1, tab2, tab3 = st.tabs(["PV 추이 (통합)", "앱 다운로드 추이", "회원 지표 추이"])
-
+    # [PV] [앱다운로드] [회원]
+    tab1, tab2, tab3 = st.tabs(["PV", "앱다운로드", "회원"])
+    
     with tab1:
-        fig_pv = px.line(
-            df_ch,   # ✅ df → df_ch
-            x="주차",
-            y=["방송_PV", "뉴스_PV"],
-            markers=True,
-            title="방송 vs 뉴스 PV 변화 추이"
-        )
-        fig_pv.update_layout(
-            hovermode="x unified",
-            xaxis_title=None,
-            yaxis_title="페이지뷰 (PV)",
-            legend_title="채널",
-            template="plotly_white"
-        )
-    
-        # ✅ 선택 주차가 df_ch에 있을 때만 기준선 표시
+        st.subheader("PV")
+        fig_pv = px.line(df_ch, x="주차", y=["방송_PV", "뉴스_PV"], markers=True, title="방송 vs 뉴스 PV 변화 추이")
+        fig_pv.update_layout(hovermode="x unified", xaxis_title=None, yaxis_title="PV", template="plotly_white")
         if str(selected_week) in df_ch["주차"].astype(str).tolist():
             fig_pv.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
-    
         st.plotly_chart(fig_pv, use_container_width=True, key="channel_pv_line")
-
-
-    with tab2:
-        fig_app = px.bar(
-            df_ch,   # ✅ df → df_ch
-            x="주차",
-            y=["방송_AOS 다운로드", "방송_iOS 다운로드"],
-            title="OS별 앱 다운로드 추이",
-            barmode="group"
-        )
-        fig_app.update_layout(
-            hovermode="x unified",
-            xaxis_title=None,
-            template="plotly_white"
-        )
     
+    with tab2:
+        st.subheader("앱 다운로드")
+        fig_app = px.bar(df_ch, x="주차", y=["방송_AOS 다운로드", "방송_iOS 다운로드"], barmode="group", title="OS별 앱 다운로드 추이")
+        fig_app.update_layout(hovermode="x unified", xaxis_title=None, template="plotly_white")
         if str(selected_week) in df_ch["주차"].astype(str).tolist():
             fig_app.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
-    
         st.plotly_chart(fig_app, use_container_width=True, key="channel_app_bar")
-
-
+    
     with tab3:
+        st.subheader("회원")
         mem_cols = [c for c in [TOTAL_MEM, CONV_MEM, NEW_MEM, CHURN_MEM] if c in df_ch.columns]
-    
         if not mem_cols:
-            st.warning("회원 지표 컬럼을 찾지 못했습니다. (총회원수/누적전환회원/신규회원/탈퇴회원 헤더 확인 필요)")
+            st.warning("회원 지표 컬럼을 찾지 못했습니다 (총회원수/누적전환회원/신규회원/탈퇴회원)")
         else:
-            fig_mem = px.line(
-                df_ch,
-                x="주차",
-                y=mem_cols,
-                markers=True,
-                title="회원 지표 추이 (총/전환/신규/탈퇴)"
-            )
-    
-            fig_mem.update_layout(
-                hovermode="x unified",
-                xaxis_title=None,
-                yaxis_title="회원 수",
-                legend_title="지표",
-                template="plotly_white"
-            )
-    
+            fig_mem = px.line(df_ch, x="주차", y=mem_cols, markers=True, title="회원 지표 추이 (총/전환/신규/탈퇴)")
+            fig_mem.update_layout(hovermode="x unified", xaxis_title=None, yaxis_title="회원 수", template="plotly_white")
             if str(selected_week) in df_ch["주차"].astype(str).tolist():
-                fig_mem.add_vline(
-                    x=selected_week,
-                    line_width=2,
-                    line_dash="dash",
-                    line_color="red"
-                )
+                fig_mem.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
+            st.plotly_chart(fig_mem, use_container_width=True, key="channel_mem_line")
     
-            st.plotly_chart(
-                fig_mem,
-                use_container_width=True,
-                key="channel_mem_line"
-            )
-
-
-
     # -----------------------------------------------------------------------------
-    # [섹션 3] 규칙 기반 자동 요약 (선택 주차 기준)
+    # *** 트래픽 급등/급락 감지
     # -----------------------------------------------------------------------------
     st.divider()
-    st.subheader("트래픽 급등/급락 감지")
-
+    st.header("트래픽 급등/급락 감지")
+    
+    # (기존 alerts 로직 그대로)
     alerts = []
-
+    
     def check_surge(label, curr, prev, threshold=0.1):
         try:
             if prev is None:
@@ -687,31 +515,32 @@ try:
                 )
         except Exception:
             return
-
-    # 트래픽/앱 다운로드
+    
     check_surge("방송 PV", latest.get("방송_PV", 0), prev.get("방송_PV", None) if prev is not None else None, threshold=0.1)
     check_surge("뉴스 PV", latest.get("뉴스_PV", 0), prev.get("뉴스_PV", None) if prev is not None else None, threshold=0.1)
     check_surge("방송 앱 다운로드", curr_app, prev_app, threshold=0.15)
-
-    # 회원 지표
     check_surge("신규회원", latest.get(NEW_MEM, 0), prev.get(NEW_MEM, None) if prev is not None else None, threshold=0.2)
     check_surge("탈퇴회원", latest.get(CHURN_MEM, 0), prev.get(CHURN_MEM, None) if prev is not None else None, threshold=0.2)
     check_surge("누적전환회원", latest.get(CONV_MEM, 0), prev.get(CONV_MEM, None) if prev is not None else None, threshold=0.05)
-
+    
     if prev is None:
-        st.info("선택한 주차가 첫 번째 주차라 전주 대비 계산이 불가합니다.")
+        st.info("선택한 주차가 첫 번째 주차라 전주 대비 계산이 불가합니다")
     elif alerts:
-        st.warning("⚠️ 주요 변동 사항이 감지되었습니다:")
+        st.warning("⚠️ 주요 변동 사항이 감지되었습니다")
         for alert in alerts:
             st.markdown(alert)
     else:
-        st.success("✅ 특이 사항 없이 안정적인 추세를 보이고 있습니다.")
-
+        st.success("✅ 특이 사항 없이 안정적인 추세를 보이고 있습니다")
+    
     # -----------------------------------------------------------------------------
-    # [섹션 4] Gemini AI 심층 리포트 (풍부한 입력 + 보고서형 프롬프트)
+    # *** AI 심층 분석 리포트
     # -----------------------------------------------------------------------------
     st.divider()
-    st.subheader("🤖 AI 심층 분석 리포트")
+    st.header("AI 심층 분석 리포트")
+    
+    # (기존 Gemini AI 섹션 코드는 그대로 두되, 타이틀만 header로 정리)
+    # 아래는 너 기존 코드 그대로 이어서 붙이면 됨
+
 
     if "ai_report" not in st.session_state:
         st.session_state["ai_report"] = None
