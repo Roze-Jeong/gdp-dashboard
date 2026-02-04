@@ -306,11 +306,26 @@ try:
     
         # 뉴스 앱 다운로드 추이
         st.markdown("##### 뉴스 앱 다운로드 추이")
-        fig_n_app = px.bar(df2, x="주차", y=["뉴스_앱다운로드"], title=None)
-        fig_n_app.update_layout(hovermode="x unified", xaxis_title=None, yaxis_title="다운로드", template="plotly_white")
+        fig_n_app = px.bar(
+            df2,
+            x="주차",
+            y=["뉴스_AOS 다운로드", "뉴스_iOS 다운로드"],
+            title="뉴스 앱 다운로드 추이 (AOS+iOS)",
+            barmode="stack"
+        )
+        fig_n_app.update_layout(
+            hovermode="x unified",
+            xaxis_title=None,
+            yaxis_title="다운로드",
+            template="plotly_white",
+            legend_title_text=None
+        )
+        
         if str(selected_week) in df2["주차"].astype(str).tolist():
             fig_n_app.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
-        st.plotly_chart(fig_n_app, use_container_width=True, key="news_app_bar")
+        
+        st.plotly_chart(fig_n_app, use_container_width=True, key="news_app_stack")
+
         vspace(36)
 
     
@@ -463,11 +478,25 @@ try:
         vspace(36)
     
         st.markdown("##### 방송 앱 다운로드 추이")
-        fig_b_app = px.bar(df2, x="주차", y=["방송_앱다운로드"], title=None)
-        fig_b_app.update_layout(hovermode="x unified", xaxis_title=None, yaxis_title="다운로드", template="plotly_white")
+        fig_b_app = px.bar(
+            df2,
+            x="주차",
+            y=["방송_AOS 다운로드", "방송_iOS 다운로드"],
+            title="방송 앱 다운로드 추이 (AOS+iOS)",
+            barmode="stack"
+        )
+        fig_b_app.update_layout(
+            hovermode="x unified",
+            xaxis_title=None,
+            yaxis_title="다운로드",
+            template="plotly_white",
+            legend_title_text=None
+        )
+        
         if str(selected_week) in df2["주차"].astype(str).tolist():
             fig_b_app.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
-        st.plotly_chart(fig_b_app, use_container_width=True, key="b_app_bar")
+        
+        st.plotly_chart(fig_b_app, use_container_width=True, key="broadcast_app_stack")
         vspace(36)
     
     # -----------------------------------------------------------------------------
