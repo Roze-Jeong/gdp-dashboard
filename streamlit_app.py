@@ -6,7 +6,11 @@ import google.generativeai as genai
 # -----------------------------------------------------------------------------
 # 1. 기본 설정 및 유틸리티
 # -----------------------------------------------------------------------------
-st.set_page_config(page_title="NEWS&방송 플랫폼 트래픽 AI 대시보드", page_icon="📊", layout="wide")
+st.set_page_config(
+    page_title="NEWS&방송 플랫폼 트래픽 AI 대시보드",
+    page_icon="📊",
+    layout="wide"
+)
 
 @st.cache_data(ttl=300)
 def load_data(url: str) -> pd.DataFrame:
@@ -25,7 +29,6 @@ def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
         # 키워드/기사 '순위'는 텍스트
         if col.endswith("순위") and ("키워드" in col or "기사" in col):
             return True
-        # (선택) 기사 순위 컬럼 패턴이 더 있다면 여기 추가 가능
         return False
 
     for col in df_clean.columns:
@@ -37,13 +40,12 @@ def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
             df_clean[col]
             .astype(str)
             .str.replace(",", "", regex=False)
-            .str.replace("%", "", regex=False)  # ✅ 비중 컬럼이 %로 들어오면 제거
+            .str.replace("%", "", regex=False)
             .apply(pd.to_numeric, errors="coerce")
             .fillna(0)
         )
 
     return df_clean
-
 
 def fmt_delta(curr, prev) -> str:
     """전주 대비 변화율 표시"""
@@ -58,6 +60,13 @@ def fmt_delta(curr, prev) -> str:
         return f"{pct:+.1f}%"
     except Exception:
         return "N/A"
+
+# ✅ 여기 추가 (UI 간격용 유틸 함수)
+def vspace(px: int = 16):
+    st.markdown(
+        f"<div style='height:{px}px'></div>",
+        unsafe_allow_html=True
+    )
 
 # -----------------------------------------------------------------------------
 # 2. 사이드바 (설정)
@@ -134,13 +143,21 @@ try:
     NEW_MEM   = "신규회원"
     CHURN_MEM = "탈퇴회원"
     # -----------------------------------------------------------------------------
-    # * 기준 주차
+    # 기준 주차
     # -----------------------------------------------------------------------------
-    st.header("기준 주차")
+    st.subheader("기준 주차")
     
     weeks = df["주차"].astype(str).tolist()[::-1]
-    selected_week = st.selectbox("주차", options=weeks, index=0, key="selected_week")
+    selected_week = st.selectbox(
+        "주차",
+        options=weeks,
+        index=0,
+        key="selected_week",
+        label_visibility="collapsed"   # ✅ '주차' 라벨 숨김
+    )
+    
     st.caption("※ 선택한 주차를 기준으로 모든 지표와 AI 분석 결과가 업데이트됩니다")
+
     
     # latest / prev 재정의
     mask = df["주차"].astype(str) == str(selected_week)
@@ -160,7 +177,7 @@ try:
     )
     
     # -----------------------------------------------------------------------------
-    # *** 주간 핵심 지표
+    # 주간 핵심 지표
     # -----------------------------------------------------------------------------
     st.divider()
     st.header("주간 핵심 지표")
@@ -221,13 +238,13 @@ try:
                           fmt_delta(latest.get(CHURN_MEM, 0), prev.get(CHURN_MEM, 0) if prev is not None else None))
     
     # -----------------------------------------------------------------------------
-    # *** 방송/뉴스 상세 지표
+    # 방송/뉴스 상세 지표
     # -----------------------------------------------------------------------------
     st.divider()
     st.header("방송/뉴스 상세 지표")
     
     # - 조회기간
-    st.markdown("#### ⏱ 조회 기간")
+    st.markdown("##### 조회 기간")
     range_label = st.radio(
         "조회 기간",
         options=["최근 1년", "최근 6개월", "최근 3개월"],
@@ -236,6 +253,7 @@ try:
         key="range_label_main",
         label_visibility="collapsed"
     )
+
     
     weeks_map = {"최근 1년": 52, "최근 6개월": 26, "최근 3개월": 13}
     n_weeks = weeks_map[range_label]
@@ -258,20 +276,22 @@ try:
     tab_n, tab_b = st.tabs(["뉴스", "방송"])
     
     # -------------------------
-    # ** 뉴스
+    # 뉴스
     # -------------------------
     with tab_n:
-        st.subheader("뉴스")
+        st.markdown("### 뉴스")  # ✅ 탭이 커 보이는 효과
+        vspace(8)
     
-        # ㄴ 뉴스 PV 추이
+        # 뉴스 PV 추이
         st.markdown("##### 뉴스 PV 추이")
         fig_n_pv = px.line(df2, x="주차", y=["뉴스_PV"], markers=True, title=None)
         fig_n_pv.update_layout(hovermode="x unified", xaxis_title=None, yaxis_title="PV", template="plotly_white")
         if str(selected_week) in df2["주차"].astype(str).tolist():
             fig_n_pv.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
         st.plotly_chart(fig_n_pv, use_container_width=True, key="news_pv_line")
+        vspace(28)
     
-        # ㄴ 뉴스 UV 추이
+        # 뉴스 UV 추이
         st.markdown("##### 뉴스 UV 추이")
         if news_uv_col:
             fig_n_uv = px.line(df2, x="주차", y=[news_uv_col], markers=True, title=None)
@@ -281,19 +301,24 @@ try:
             st.plotly_chart(fig_n_uv, use_container_width=True, key="news_uv_line")
         else:
             st.info("뉴스 UV 컬럼을 찾지 못했습니다 (예: 뉴스_사용자)")
+            vspace(28)
+
     
-        # ㄴ 뉴스 앱 다운로드 추이
+        # 뉴스 앱 다운로드 추이
         st.markdown("##### 뉴스 앱 다운로드 추이")
         fig_n_app = px.bar(df2, x="주차", y=["뉴스_앱다운로드"], title=None)
         fig_n_app.update_layout(hovermode="x unified", xaxis_title=None, yaxis_title="다운로드", template="plotly_white")
         if str(selected_week) in df2["주차"].astype(str).tolist():
             fig_n_app.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
         st.plotly_chart(fig_n_app, use_container_width=True, key="news_app_bar")
+        vspace(28)
+
     
-        # ㄴ 뉴스 유입소스
+        # 뉴스 유입소스
         st.markdown("##### 뉴스 유입 소스")
-        st.caption("소스: 다이렉트 / 네이버 / 다음 / 구글 / 기타  |  전체는 KPI로만 표시")
-    
+        st.caption("소스: 다이렉트 / 네이버 / 다음 / 구글 / 기타 | 전체는 KPI로만 표시")
+        vspace(8)
+        
         sources = ["다이렉트", "네이버", "다음", "구글", "기타"]
         color_map = {
             "네이버": "#2ECC71",
@@ -302,43 +327,44 @@ try:
             "다이렉트": "#7FDBFF",
             "기타": "#95A5A6",
         }
-    
+        
         def to_num(x):
             try:
                 return float(str(x).replace(",", "").strip())
             except Exception:
                 return 0.0
-    
+        
         tmp = df2[df2["주차"].astype(str) == str(selected_week)] if "주차" in df2.columns else df2
         latest_row = tmp.iloc[-1] if len(tmp) else df2.iloc[-1]
-    
+        
         rows = []
         for s in sources:
-            u = to_num(latest_row.get(f"뉴스_유입_{s}_사용자", 0))
-            se = to_num(latest_row.get(f"뉴스_유입_{s}_세션", 0))
-            rows.append({"유입소스": s, "사용자": u, "세션": se})
+            rows.append({
+                "유입소스": s,
+                "사용자": to_num(latest_row.get(f"뉴스_유입_{s}_사용자", 0)),
+                "세션": to_num(latest_row.get(f"뉴스_유입_{s}_세션", 0)),
+            })
         acq_df = pd.DataFrame(rows)
-    
+        
         total_users_raw = latest_row.get("뉴스_유입_전체_사용자", None)
         total_sessions_raw = latest_row.get("뉴스_유입_전체_세션", None)
         total_users = to_num(total_users_raw) if total_users_raw not in [None, ""] else acq_df["사용자"].sum()
         total_sessions = to_num(total_sessions_raw) if total_sessions_raw not in [None, ""] else acq_df["세션"].sum()
-    
-        # ㄴ 뉴스 유입 사용자 (전체/채널별)
-        st.markdown("###### 뉴스 유입 사용자")
+        
+        # ✅ KPI (전체) 2개만
         k1, k2 = st.columns(2)
-        k1.metric("전체", f"{int(total_users):,}")
-        k2.metric("채널 합계", f"{int(acq_df['사용자'].sum()):,}")
-    
+        k1.metric("전체 사용자", f"{int(total_users):,}")
+        k2.metric("전체 세션", f"{int(total_sessions):,}")
+        
+        vspace(14)
+        
+        # ✅ 차트 2개: 좌(사용자 막대 + %) / 우(세션 파이)
         c1, c2 = st.columns(2)
-    
+        
         with c1:
             total_users_sum = acq_df["사용자"].sum()
-            if total_users_sum > 0:
-                acq_df["사용자_비중(%)"] = (acq_df["사용자"] / total_users_sum * 100).round(1)
-            else:
-                acq_df["사용자_비중(%)"] = 0.0
-    
+            acq_df["비중(%)"] = ((acq_df["사용자"] / total_users_sum) * 100).round(1) if total_users_sum > 0 else 0.0
+        
             fig_u = px.bar(
                 acq_df,
                 x="유입소스",
@@ -347,18 +373,12 @@ try:
                 category_orders={"유입소스": sources},
                 color="유입소스",
                 color_discrete_map=color_map,
-                text=acq_df["사용자_비중(%)"].astype(str) + "%"
+                text=acq_df["비중(%)"].astype(str) + "%"
             )
             fig_u.update_traces(textposition="outside", cliponaxis=False)
             fig_u.update_layout(xaxis_title=None, yaxis_title="사용자", template="plotly_white", legend_title_text=None)
             st.plotly_chart(fig_u, use_container_width=True, key="news_acq_users_bar_pct")
-    
-        # ㄴ 뉴스 유입 세션 (전체/채널별)
-        st.markdown("###### 뉴스 유입 세션")
-        k3, k4 = st.columns(2)
-        k3.metric("전체", f"{int(total_sessions):,}")
-        k4.metric("채널 합계", f"{int(acq_df['세션'].sum()):,}")
-    
+        
         with c2:
             if acq_df["세션"].sum() == 0:
                 st.info("세션 값이 모두 0이라 원형차트를 그릴 수 없습니다")
@@ -373,9 +393,11 @@ try:
                     color_discrete_map=color_map
                 )
                 fig_s.update_layout(template="plotly_white", legend_title_text=None)
-                st.plotly_chart(fig_s, use_container_width=True, key="news_acq_sessions_pie_fixed")
+                st.plotly_chart(fig_s, use_container_width=True, key="news_acq_sessions_pie")
+
+
     
-        # ㄴ 주별 뉴스 키워드 Top 3
+        # 주별 뉴스 키워드 Top 3
         st.markdown("##### 주별 뉴스 키워드 TOP3")
         st.caption("선택 주차 기준 주요 키워드와 비중(%)")
     
@@ -413,10 +435,11 @@ try:
                 st.plotly_chart(fig_kw, use_container_width=True, key="news_kw_top3_bar")
     
     # -------------------------
-    # ** 방송
+    # 방송
     # -------------------------
     with tab_b:
-        st.subheader("방송")
+        st.markdown("### 방송")
+        vspace(8)
     
         st.markdown("##### 방송 PV 추이")
         fig_b_pv = px.line(df2, x="주차", y=["방송_PV"], markers=True, title=None)
@@ -424,6 +447,7 @@ try:
         if str(selected_week) in df2["주차"].astype(str).tolist():
             fig_b_pv.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
         st.plotly_chart(fig_b_pv, use_container_width=True, key="b_pv_line")
+        vspace(28)
     
         st.markdown("##### 방송 UV 추이")
         fig_b_uv = px.line(df2, x="주차", y=["방송_사용자"], markers=True, title=None)
@@ -431,6 +455,7 @@ try:
         if str(selected_week) in df2["주차"].astype(str).tolist():
             fig_b_uv.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
         st.plotly_chart(fig_b_uv, use_container_width=True, key="b_uv_line")
+        vspace(28)
     
         st.markdown("##### 방송 앱 다운로드 추이")
         fig_b_app = px.bar(df2, x="주차", y=["방송_앱다운로드"], title=None)
@@ -438,9 +463,10 @@ try:
         if str(selected_week) in df2["주차"].astype(str).tolist():
             fig_b_app.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
         st.plotly_chart(fig_b_app, use_container_width=True, key="b_app_bar")
+        vspace(28)
     
     # -----------------------------------------------------------------------------
-    # *** 채널별 트래픽 추이
+    # 채널별 트래픽 추이
     # -----------------------------------------------------------------------------
     st.divider()
     st.header("채널별 트래픽 추이")
@@ -491,7 +517,7 @@ try:
             st.plotly_chart(fig_mem, use_container_width=True, key="channel_mem_line")
     
     # -----------------------------------------------------------------------------
-    # *** 트래픽 급등/급락 감지
+    # 트래픽 급등/급락 감지
     # -----------------------------------------------------------------------------
     st.divider()
     st.header("트래픽 급등/급락 감지")
@@ -533,7 +559,7 @@ try:
         st.success("✅ 특이 사항 없이 안정적인 추세를 보이고 있습니다")
     
     # -----------------------------------------------------------------------------
-    # *** AI 심층 분석 리포트
+    # AI 심층 분석 리포트
     # -----------------------------------------------------------------------------
     st.divider()
     st.header("AI 심층 분석 리포트")
