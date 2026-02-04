@@ -451,13 +451,13 @@ try:
                 )
     
     
-                    fig_u.update_layout(
-                        xaxis_title=None,
-                        yaxis_title="사용자",
-                        template="plotly_white",
-                        legend_title_text=None
-                    )
-                    st.plotly_chart(fig_u, use_container_width=True, key="news_acq_users_bar_fixed")
+                fig_u.update_layout(
+                    xaxis_title=None,
+                    yaxis_title="사용자",
+                    template="plotly_white",
+                    legend_title_text=None
+                )
+                st.plotly_chart(fig_u, use_container_width=True, key="news_acq_users_bar_fixed")
         
             # ✅ 세션 기준: 파이 (색상 고정)
             with c2:
