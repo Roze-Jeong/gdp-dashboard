@@ -289,7 +289,7 @@ try:
         if str(selected_week) in df2["주차"].astype(str).tolist():
             fig_n_pv.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
         st.plotly_chart(fig_n_pv, use_container_width=True, key="news_pv_line")
-        vspace(28)
+        vspace(36)
     
         # 뉴스 UV 추이
         st.markdown("##### 뉴스 UV 추이")
@@ -301,7 +301,7 @@ try:
             st.plotly_chart(fig_n_uv, use_container_width=True, key="news_uv_line")
         else:
             st.info("뉴스 UV 컬럼을 찾지 못했습니다 (예: 뉴스_사용자)")
-            vspace(28)
+            vspace(36)
 
     
         # 뉴스 앱 다운로드 추이
@@ -311,7 +311,7 @@ try:
         if str(selected_week) in df2["주차"].astype(str).tolist():
             fig_n_app.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
         st.plotly_chart(fig_n_app, use_container_width=True, key="news_app_bar")
-        vspace(28)
+        vspace(36)
 
     
         # 뉴스 유입소스
@@ -452,7 +452,7 @@ try:
         if str(selected_week) in df2["주차"].astype(str).tolist():
             fig_b_pv.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
         st.plotly_chart(fig_b_pv, use_container_width=True, key="b_pv_line")
-        vspace(28)
+        vspace(36)
     
         st.markdown("##### 방송 UV 추이")
         fig_b_uv = px.line(df2, x="주차", y=["방송_사용자"], markers=True, title=None)
@@ -460,7 +460,7 @@ try:
         if str(selected_week) in df2["주차"].astype(str).tolist():
             fig_b_uv.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
         st.plotly_chart(fig_b_uv, use_container_width=True, key="b_uv_line")
-        vspace(28)
+        vspace(36)
     
         st.markdown("##### 방송 앱 다운로드 추이")
         fig_b_app = px.bar(df2, x="주차", y=["방송_앱다운로드"], title=None)
@@ -468,7 +468,7 @@ try:
         if str(selected_week) in df2["주차"].astype(str).tolist():
             fig_b_app.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
         st.plotly_chart(fig_b_app, use_container_width=True, key="b_app_bar")
-        vspace(28)
+        vspace(36)
     
     # -----------------------------------------------------------------------------
     # 채널별 트래픽 추이
