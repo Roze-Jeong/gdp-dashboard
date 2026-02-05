@@ -68,6 +68,51 @@ def vspace(px: int = 16):
         unsafe_allow_html=True
     )
 
+# ✅ 여기부터 추가 (한국식 단위 표기 유틸)
+def _kr_unit(v: float) -> str:
+    """한국식 단위 표기: 1,234 / 1.2만 / 3.4억"""
+    try:
+        v = float(v)
+    except Exception:
+        return ""
+    sign = "-" if v < 0 else ""
+    v = abs(v)
+
+    if v >= 100_000_000:  # 억
+        return f"{sign}{v/100_000_000:.1f}억".rstrip("0").rstrip(".")
+    if v >= 10_000:       # 만
+        return f"{sign}{v/10_000:.1f}만".rstrip("0").rstrip(".")
+    return f"{sign}{v:,.0f}"
+
+def apply_kr_yaxis(fig, nticks: int = 6):
+    """
+    Plotly 차트 y축을 한국식 단위(만/억)로 표시
+    UI/차트 로직에는 영향 없음
+    """
+    fig.update_yaxes(rangemode="tozero")
+
+    yaxis = fig.layout.yaxis
+    if not yaxis or yaxis.range is None:
+        fig.update_yaxes(tickformat=",")
+        return fig
+
+    lo, hi = yaxis.range
+    if lo == hi:
+        fig.update_yaxes(tickformat=",")
+        return fig
+
+    step = (hi - lo) / max(nticks - 1, 1)
+    tickvals = [lo + i * step for i in range(nticks)]
+    ticktext = [_kr_unit(v) for v in tickvals]
+
+    fig.update_yaxes(
+        tickmode="array",
+        tickvals=tickvals,
+        ticktext=ticktext
+    )
+    return fig
+
+
 # -----------------------------------------------------------------------------
 # 2. 사이드바 (설정)
 # -----------------------------------------------------------------------------
@@ -284,13 +329,43 @@ try:
     
         # 뉴스 PV 추이
         st.markdown("##### 뉴스 PV 추이")
-        fig_n_pv = px.line(df2, x="주차", y=["뉴스_PV"], markers=True, title=None)
-        fig_n_pv.update_layout(hovermode="x unified", xaxis_title=None, yaxis_title="PV", template="plotly_white")
+        
+        fig_n_pv = px.line(
+            df2,
+            x="주차",
+            y=["뉴스_PV"],
+            markers=True,
+            title=None
+        )
+        
+        fig_n_pv.update_layout(
+            hovermode="x unified",
+            xaxis_title=None,
+            yaxis_title="PV",
+            template="plotly_white"
+        )
+        
+        # ✅ 기존 기준선 유지
         if str(selected_week) in df2["주차"].astype(str).tolist():
-            fig_n_pv.add_vline(x=selected_week, line_width=2, line_dash="dash", line_color="red")
-        st.plotly_chart(fig_n_pv, use_container_width=True, key="news_pv_line")
+            fig_n_pv.add_vline(
+                x=selected_week,
+                line_width=2,
+                line_dash="dash",
+                line_color="red"
+            )
+        
+        # ✅ 여기 한 줄만 추가 (y축만 한국식 단위)
+        apply_kr_yaxis(fig_n_pv)
+        
+        # ✅ 기존과 동일
+        st.plotly_chart(
+            fig_n_pv,
+            use_container_width=True,
+            key="news_pv_line"
+        )
+        
         vspace(36)
-    
+
         # 뉴스 UV 추이
         st.markdown("##### 뉴스 UV 추이")
         if news_uv_col:
