@@ -774,7 +774,7 @@ for _, (label, curr, p) in metrics.items()
 
 [출력 형식(반드시 준수)]
 JTBC 주간 데이터 분석 리포트 ({latest.get('주차','')})
-작성자: 안가르쳐주지롱
+작성자: Gemini
 
 1. 📌 금주 3줄 요약
 - (3줄, 각 줄에 근거 숫자 포함)
