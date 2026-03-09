@@ -146,7 +146,7 @@ with st.sidebar:
     csv_url = st.text_input(
         label="CSV URL",
         value="",
-        placeholder="CSV URL을 입력해야 데이터가 표시됩니다",
+        placeholder="CSV URL 입력 필수",
         label_visibility="collapsed",
         help="Google Sheets의 CSV export 링크를 입력하세요"
     )
