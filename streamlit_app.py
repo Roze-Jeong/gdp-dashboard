@@ -158,12 +158,23 @@ with st.sidebar:
     api_key = DEFAULT_GEMINI_API_KEY
     
     with st.expander("Gemini API Key", expanded=False):
-        st.text_input(
-            label="Gemini API Key",
-            value=api_key,
-            type="password",
-            disabled=True,
-            label_visibility="collapsed"
+
+        masked_key = "•" * 24
+    
+        st.markdown(
+            f"""
+            <div style="
+                background-color:#0e1117;
+                padding:10px 14px;
+                border-radius:8px;
+                font-family:monospace;
+                font-size:14px;
+                color:#c9d1d9;
+            ">
+            {masked_key}
+            </div>
+            """,
+            unsafe_allow_html=True
         )
 
     # -----------------------------
