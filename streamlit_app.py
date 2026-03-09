@@ -449,67 +449,125 @@ try:
         news_uv_val = latest.get(news_uv_col_global, 0) if news_uv_col_global else 0
         prev_news_uv_val = prev.get(news_uv_col_global, 0) if (prev is not None and news_uv_col_global) else None
 
-        left, right = st.columns([7, 5], gap="large")
+            col_news, col_broadcast, col_member = st.columns(3, gap="large")
 
-        with left:
-            with st.container(border=True):
-                st.subheader("뉴스 지표")
-                n1, n2, n3 = st.columns(3)
-                with n1:
-                    st.metric(
-                        "뉴스 PV",
-                        f"{latest.get('뉴스_PV', 0):,.0f}",
-                        fmt_delta(latest.get("뉴스_PV", 0), prev.get("뉴스_PV", 0) if prev is not None else None)
-                    )
-                with n2:
-                    st.metric(
-                        "뉴스 UV",
-                        f"{news_uv_val:,.0f}",
-                        fmt_delta(news_uv_val, prev_news_uv_val)
-                    )
-                with n3:
-                    st.metric(
-                        "앱 다운로드",
-                        f"{curr_app:,.0f}",
-                        fmt_delta(curr_app, prev_app)
-                    )
-
-            with st.container(border=True):
-                st.subheader("방송 지표")
-                b1, b2, b3 = st.columns(3)
-                with b1:
-                    st.metric(
-                        "방송 PV",
-                        f"{latest.get('방송_PV', 0):,.0f}",
-                        fmt_delta(latest.get("방송_PV", 0), prev.get("방송_PV", 0) if prev is not None else None)
-                    )
-                with b2:
-                    st.metric(
-                        "방송 UV",
-                        f"{latest.get('방송_사용자', 0):,.0f}",
-                        fmt_delta(latest.get("방송_사용자", 0), prev.get("방송_사용자", 0) if prev is not None else None)
-                    )
-                with b3:
-                    b_app = latest.get("방송_AOS 다운로드", 0) + latest.get("방송_iOS 다운로드", 0)
-                    prev_b_app = (prev.get("방송_AOS 다운로드", 0) + prev.get("방송_iOS 다운로드", 0)) if prev is not None else None
-                    st.metric("방송 앱다운", f"{b_app:,.0f}", fmt_delta(b_app, prev_b_app))
-
-        with right:
-            with st.container(border=True):
-                st.subheader("회원 지표")
-                m1, m2, m3, m4 = st.columns(4)
-                with m1:
-                    st.metric("총회원수", f"{latest.get(TOTAL_MEM, 0):,.0f}",
-                              fmt_delta(latest.get(TOTAL_MEM, 0), prev.get(TOTAL_MEM, 0) if prev is not None else None))
-                with m2:
-                    st.metric("누적전환회원", f"{latest.get(CONV_MEM, 0):,.0f}",
-                              fmt_delta(latest.get(CONV_MEM, 0), prev.get(CONV_MEM, 0) if prev is not None else None))
-                with m3:
-                    st.metric("신규회원", f"{latest.get(NEW_MEM, 0):,.0f}",
-                              fmt_delta(latest.get(NEW_MEM, 0), prev.get(NEW_MEM, 0) if prev is not None else None))
-                with m4:
-                    st.metric("탈퇴회원", f"{latest.get(CHURN_MEM, 0):,.0f}",
-                              fmt_delta(latest.get(CHURN_MEM, 0), prev.get(CHURN_MEM, 0) if prev is not None else None))
+            # 뉴스 앱다운로드는 기존 전체 KPI 로직 유지
+            news_app = curr_app
+            prev_news_app = prev_app
+    
+            # 방송 앱다운로드 별도 계산
+            broadcast_app = latest.get("방송_AOS 다운로드", 0) + latest.get("방송_iOS 다운로드", 0)
+            prev_broadcast_app = (
+                prev.get("방송_AOS 다운로드", 0) + prev.get("방송_iOS 다운로드", 0)
+            ) if prev is not None else None
+    
+            with col_news:
+                with st.container(border=True):
+                    st.subheader("뉴스 지표")
+                    n1, n2, n3 = st.columns(3)
+    
+                    with n1:
+                        st.metric(
+                            "뉴스 PV",
+                            f"{latest.get('뉴스_PV', 0):,.0f}",
+                            fmt_delta(
+                                latest.get("뉴스_PV", 0),
+                                prev.get("뉴스_PV", 0) if prev is not None else None
+                            )
+                        )
+    
+                    with n2:
+                        st.metric(
+                            "뉴스 UV",
+                            f"{news_uv_val:,.0f}",
+                            fmt_delta(news_uv_val, prev_news_uv_val)
+                        )
+    
+                    with n3:
+                        st.metric(
+                            "앱 다운로드",
+                            f"{news_app:,.0f}",
+                            fmt_delta(news_app, prev_news_app)
+                        )
+    
+            with col_broadcast:
+                with st.container(border=True):
+                    st.subheader("방송 지표")
+                    b1, b2, b3 = st.columns(3)
+    
+                    with b1:
+                        st.metric(
+                            "방송 PV",
+                            f"{latest.get('방송_PV', 0):,.0f}",
+                            fmt_delta(
+                                latest.get("방송_PV", 0),
+                                prev.get("방송_PV", 0) if prev is not None else None
+                            )
+                        )
+    
+                    with b2:
+                        st.metric(
+                            "방송 UV",
+                            f"{latest.get('방송_사용자', 0):,.0f}",
+                            fmt_delta(
+                                latest.get("방송_사용자", 0),
+                                prev.get("방송_사용자", 0) if prev is not None else None
+                            )
+                        )
+    
+                    with b3:
+                        st.metric(
+                            "앱 다운로드",
+                            f"{broadcast_app:,.0f}",
+                            fmt_delta(broadcast_app, prev_broadcast_app)
+                        )
+    
+            with col_member:
+                with st.container(border=True):
+                    st.subheader("회원 지표")
+    
+                    m1, m2 = st.columns(2)
+                    m3, m4 = st.columns(2)
+    
+                    with m1:
+                        st.metric(
+                            "총회원수",
+                            f"{latest.get(TOTAL_MEM, 0):,.0f}",
+                            fmt_delta(
+                                latest.get(TOTAL_MEM, 0),
+                                prev.get(TOTAL_MEM, 0) if prev is not None else None
+                            )
+                        )
+    
+                    with m2:
+                        st.metric(
+                            "누적전환회원",
+                            f"{latest.get(CONV_MEM, 0):,.0f}",
+                            fmt_delta(
+                                latest.get(CONV_MEM, 0),
+                                prev.get(CONV_MEM, 0) if prev is not None else None
+                            )
+                        )
+    
+                    with m3:
+                        st.metric(
+                            "신규회원",
+                            f"{latest.get(NEW_MEM, 0):,.0f}",
+                            fmt_delta(
+                                latest.get(NEW_MEM, 0),
+                                prev.get(NEW_MEM, 0) if prev is not None else None
+                            )
+                        )
+    
+                    with m4:
+                        st.metric(
+                            "탈퇴회원",
+                            f"{latest.get(CHURN_MEM, 0):,.0f}",
+                            fmt_delta(
+                                latest.get(CHURN_MEM, 0),
+                                prev.get(CHURN_MEM, 0) if prev is not None else None
+                            )
+                        )
 
         st.divider()
         st.header("채널별 트래픽 추이 분석")
