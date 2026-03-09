@@ -87,7 +87,44 @@ def to_num(x):
 # 2. 사이드바
 # -----------------------------------------------------------------------------
 with st.sidebar:
+    # -----------------------------
+    # 공통 스타일
+    # -----------------------------
+    st.markdown("""
+    <style>
+    section[data-testid="stSidebar"] .block-container {
+        padding-top: 1.2rem;
+        padding-bottom: 1rem;
+    }
+    section[data-testid="stSidebar"] hr {
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+    }
+    .sidebar-section-title {
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        opacity: 0.8;
+        margin-bottom: 0.35rem;
+    }
+    .sidebar-note {
+        font-size: 0.83rem;
+        line-height: 1.5;
+        opacity: 0.9;
+        padding: 0.75rem 0.85rem;
+        border-radius: 0.75rem;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.08);
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # -----------------------------
+    # 1) 메뉴
+    # -----------------------------
     st.markdown("## 메뉴")
+    st.caption("현재 보고 싶은 영역을 선택하세요")
+
     page_view = st.radio(
         "페이지 선택",
         options=["전체", "뉴스", "방송"],
@@ -95,45 +132,56 @@ with st.sidebar:
         label_visibility="collapsed",
         key="page_view"
     )
+
     st.divider()
 
-    st.markdown("## ⚙️ 설정")
-    st.caption("대시보드 구동을 위해 아래 입력이 필요합니다")
+    # -----------------------------
+    # 2) 데이터 연결
+    # -----------------------------
+    st.markdown("## 데이터 연결")
+    st.caption("대시보드 구동에 필요한 입력값입니다")
 
-    with st.container(border=True):
-        st.markdown("### 1) CSV URL (필수)")
-        st.caption("지정된 플랫폼 트래픽 데이터 문서(CSV)를 입력합니다")
+    st.markdown('<div class="sidebar-section-title">CSV URL</div>', unsafe_allow_html=True)
+    csv_url = st.text_input(
+        label="CSV URL",
+        value="",
+        placeholder="https://docs.google.com/spreadsheets/d/.../export?format=csv&gid=0",
+        label_visibility="collapsed",
+        help="Google Sheets의 CSV export 링크를 입력하세요"
+    )
+    st.caption("지정된 플랫폼 트래픽 데이터 문서(CSV)를 입력합니다")
 
-        csv_url = st.text_input(
-            label="CSV URL",
+    if not csv_url:
+        st.warning("CSV URL을 입력해야 데이터가 표시됩니다", icon="⚠️")
+
+    with st.expander("AI 분석 확장 설정", expanded=False):
+        st.markdown('<div class="sidebar-section-title">Gemini API Key</div>', unsafe_allow_html=True)
+        api_key = st.text_input(
+            label="Gemini API Key",
+            type="password",
             value="",
-            placeholder="https://docs.google.com/spreadsheets/d/.../export?format=csv&gid=0",
-            help="Google Sheets의 CSV export 링크를 입력하세요"
+            placeholder="AI Studio에서 발급받은 키",
+            label_visibility="collapsed",
+            help="키가 없으면 AI 심층분석만 비활성화되며, 기본 데이터는 정상 표시됩니다"
         )
-
-        if not csv_url:
-            st.warning("CSV URL을 입력해야 데이터가 표시됩니다", icon="⚠️")
-
-    with st.container(border=True):
-        st.markdown("### 2) Gemini API Key (선택)")
-        st.caption("AI 심층분석 기능을 사용하려면 필요합니다")
-
-        with st.expander("API Key 입력하기", expanded=False):
-            api_key = st.text_input(
-                label="Gemini API Key",
-                type="password",
-                value="",
-                placeholder="AI Studio에서 발급받은 키",
-                help="키가 없으면 AI 심층분석만 비활성화되며, 대시보드 데이터는 정상 표시됩니다"
-            )
+        st.caption("AI 심층분석 기능을 사용할 때만 필요합니다")
 
     if "api_key" not in locals():
         api_key = ""
 
-    st.markdown("### 🧪 테스트 메모")
-    st.info(
-        "외부 유입 방어를 위해 데이터(CSV URL)와 API Key는 수동 입력 방식으로 운영합니다",
-        icon="✅"
+    st.divider()
+
+    # -----------------------------
+    # 3) 운영 안내
+    # -----------------------------
+    st.markdown("## 운영 안내")
+    st.markdown(
+        """
+        <div class="sidebar-note">
+        외부 유입 방어를 위해 데이터(CSV URL)와 API Key는 수동 입력 방식으로 운영합니다
+        </div>
+        """,
+        unsafe_allow_html=True
     )
 
 # -----------------------------------------------------------------------------
