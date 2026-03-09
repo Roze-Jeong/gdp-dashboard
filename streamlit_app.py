@@ -437,394 +437,394 @@ try:
         else:
             st.info("방송 앱다운로드 컬럼을 찾지 못했습니다")
 
-# -------------------------------------------------------------------------
-# 페이지 라우팅
-# -------------------------------------------------------------------------
-weeks_map = {"최근 1년": 52, "최근 6개월": 26, "최근 3개월": 13}
-
-if page_view == "전체":
-    st.divider()
-    st.header("주간 핵심 지표")
-
-    news_uv_val = latest.get(news_uv_col_global, 0) if news_uv_col_global else 0
-    prev_news_uv_val = prev.get(news_uv_col_global, 0) if (prev is not None and news_uv_col_global) else None
-
-    col_news, col_broadcast, col_member = st.columns(3, gap="large")
-
-    # 뉴스 앱다운로드는 기존 전체 KPI 로직 유지
-    news_app = curr_app
-    prev_news_app = prev_app
-
-    # 방송 앱다운로드 별도 계산
-    broadcast_app = latest.get("방송_AOS 다운로드", 0) + latest.get("방송_iOS 다운로드", 0)
-    prev_broadcast_app = (
-        prev.get("방송_AOS 다운로드", 0) + prev.get("방송_iOS 다운로드", 0)
-    ) if prev is not None else None
-
-    with col_news:
-        with st.container(border=True):
-            st.subheader("뉴스 지표")
-            n1, n2, n3 = st.columns(3)
-
-            with n1:
-                st.metric(
-                    "뉴스 PV",
-                    f"{latest.get('뉴스_PV', 0):,.0f}",
-                    fmt_delta(
-                        latest.get("뉴스_PV", 0),
-                        prev.get("뉴스_PV", 0) if prev is not None else None
+    # -------------------------------------------------------------------------
+    # 페이지 라우팅
+    # -------------------------------------------------------------------------
+    weeks_map = {"최근 1년": 52, "최근 6개월": 26, "최근 3개월": 13}
+    
+    if page_view == "전체":
+        st.divider()
+        st.header("주간 핵심 지표")
+    
+        news_uv_val = latest.get(news_uv_col_global, 0) if news_uv_col_global else 0
+        prev_news_uv_val = prev.get(news_uv_col_global, 0) if (prev is not None and news_uv_col_global) else None
+    
+        col_news, col_broadcast, col_member = st.columns(3, gap="large")
+    
+        # 뉴스 앱다운로드는 기존 전체 KPI 로직 유지
+        news_app = curr_app
+        prev_news_app = prev_app
+    
+        # 방송 앱다운로드 별도 계산
+        broadcast_app = latest.get("방송_AOS 다운로드", 0) + latest.get("방송_iOS 다운로드", 0)
+        prev_broadcast_app = (
+            prev.get("방송_AOS 다운로드", 0) + prev.get("방송_iOS 다운로드", 0)
+        ) if prev is not None else None
+    
+        with col_news:
+            with st.container(border=True):
+                st.subheader("뉴스 지표")
+                n1, n2, n3 = st.columns(3)
+    
+                with n1:
+                    st.metric(
+                        "뉴스 PV",
+                        f"{latest.get('뉴스_PV', 0):,.0f}",
+                        fmt_delta(
+                            latest.get("뉴스_PV", 0),
+                            prev.get("뉴스_PV", 0) if prev is not None else None
+                        )
                     )
-                )
-
-            with n2:
-                st.metric(
-                    "뉴스 UV",
-                    f"{news_uv_val:,.0f}",
-                    fmt_delta(news_uv_val, prev_news_uv_val)
-                )
-
-            with n3:
-                st.metric(
-                    "앱 다운로드",
-                    f"{news_app:,.0f}",
-                    fmt_delta(news_app, prev_news_app)
-                )
-
-    with col_broadcast:
-        with st.container(border=True):
-            st.subheader("방송 지표")
-            b1, b2, b3 = st.columns(3)
-
-            with b1:
-                st.metric(
-                    "방송 PV",
-                    f"{latest.get('방송_PV', 0):,.0f}",
-                    fmt_delta(
-                        latest.get("방송_PV", 0),
-                        prev.get("방송_PV", 0) if prev is not None else None
+    
+                with n2:
+                    st.metric(
+                        "뉴스 UV",
+                        f"{news_uv_val:,.0f}",
+                        fmt_delta(news_uv_val, prev_news_uv_val)
                     )
-                )
-
-            with b2:
-                st.metric(
-                    "방송 UV",
-                    f"{latest.get('방송_사용자', 0):,.0f}",
-                    fmt_delta(
-                        latest.get("방송_사용자", 0),
-                        prev.get("방송_사용자", 0) if prev is not None else None
+    
+                with n3:
+                    st.metric(
+                        "앱 다운로드",
+                        f"{news_app:,.0f}",
+                        fmt_delta(news_app, prev_news_app)
                     )
-                )
-
-            with b3:
-                st.metric(
-                    "앱 다운로드",
-                    f"{broadcast_app:,.0f}",
-                    fmt_delta(broadcast_app, prev_broadcast_app)
-                )
-
-    with col_member:
-        with st.container(border=True):
-            st.subheader("회원 지표")
-
-            m1, m2 = st.columns(2)
-            m3, m4 = st.columns(2)
-
-            with m1:
-                st.metric(
-                    "총회원수",
-                    f"{latest.get(TOTAL_MEM, 0):,.0f}",
-                    fmt_delta(
-                        latest.get(TOTAL_MEM, 0),
-                        prev.get(TOTAL_MEM, 0) if prev is not None else None
+    
+        with col_broadcast:
+            with st.container(border=True):
+                st.subheader("방송 지표")
+                b1, b2, b3 = st.columns(3)
+    
+                with b1:
+                    st.metric(
+                        "방송 PV",
+                        f"{latest.get('방송_PV', 0):,.0f}",
+                        fmt_delta(
+                            latest.get("방송_PV", 0),
+                            prev.get("방송_PV", 0) if prev is not None else None
+                        )
                     )
-                )
-
-            with m2:
-                st.metric(
-                    "누적전환회원",
-                    f"{latest.get(CONV_MEM, 0):,.0f}",
-                    fmt_delta(
-                        latest.get(CONV_MEM, 0),
-                        prev.get(CONV_MEM, 0) if prev is not None else None
+    
+                with b2:
+                    st.metric(
+                        "방송 UV",
+                        f"{latest.get('방송_사용자', 0):,.0f}",
+                        fmt_delta(
+                            latest.get("방송_사용자", 0),
+                            prev.get("방송_사용자", 0) if prev is not None else None
+                        )
                     )
-                )
-
-            with m3:
-                st.metric(
-                    "신규회원",
-                    f"{latest.get(NEW_MEM, 0):,.0f}",
-                    fmt_delta(
-                        latest.get(NEW_MEM, 0),
-                        prev.get(NEW_MEM, 0) if prev is not None else None
+    
+                with b3:
+                    st.metric(
+                        "앱 다운로드",
+                        f"{broadcast_app:,.0f}",
+                        fmt_delta(broadcast_app, prev_broadcast_app)
                     )
-                )
-
-            with m4:
-                st.metric(
-                    "탈퇴회원",
-                    f"{latest.get(CHURN_MEM, 0):,.0f}",
-                    fmt_delta(
-                        latest.get(CHURN_MEM, 0),
-                        prev.get(CHURN_MEM, 0) if prev is not None else None
+    
+        with col_member:
+            with st.container(border=True):
+                st.subheader("회원 지표")
+    
+                m1, m2 = st.columns(2)
+                m3, m4 = st.columns(2)
+    
+                with m1:
+                    st.metric(
+                        "총회원수",
+                        f"{latest.get(TOTAL_MEM, 0):,.0f}",
+                        fmt_delta(
+                            latest.get(TOTAL_MEM, 0),
+                            prev.get(TOTAL_MEM, 0) if prev is not None else None
+                        )
                     )
-                )
-
-    st.divider()
-    st.header("채널별 트래픽 추이 분석")
-
-    tab1, tab2, tab3 = st.tabs(["PV 추이 (통합)", "앱 다운로드 추이", "회원 지표 추이"])
-
-    with tab1:
-        fig_pv = px.line(
-            df,
-            x="주차",
-            y=["방송_PV", "뉴스_PV"],
-            markers=True,
-            title="방송 vs 뉴스 PV 변화 추이"
-        )
-        fig_pv.update_layout(
-            hovermode="x unified",
-            xaxis_title=None,
-            yaxis_title="페이지뷰 (PV)",
-            legend_title="채널",
-            template="plotly_white"
-        )
-        add_selected_week_line(fig_pv, df, selected_week)
-        st.plotly_chart(fig_pv, use_container_width=True)
-
-    with tab2:
-        fig_app = px.bar(
-            df,
-            x="주차",
-            y=["방송_AOS 다운로드", "방송_iOS 다운로드"],
-            title="OS별 앱 다운로드 추이",
-            barmode="group"
-        )
-        fig_app.update_layout(
-            hovermode="x unified",
-            xaxis_title=None,
-            template="plotly_white"
-        )
-        add_selected_week_line(fig_app, df, selected_week)
-        st.plotly_chart(fig_app, use_container_width=True)
-
-    with tab3:
-        mem_cols = [c for c in [TOTAL_MEM, CONV_MEM, NEW_MEM, CHURN_MEM] if c in df.columns]
-        if not mem_cols:
-            st.warning("회원 지표 컬럼을 찾지 못했습니다. (총회원수/누적전환회원/신규회원/탈퇴회원)")
-        else:
-            fig_mem = px.line(
+    
+                with m2:
+                    st.metric(
+                        "누적전환회원",
+                        f"{latest.get(CONV_MEM, 0):,.0f}",
+                        fmt_delta(
+                            latest.get(CONV_MEM, 0),
+                            prev.get(CONV_MEM, 0) if prev is not None else None
+                        )
+                    )
+    
+                with m3:
+                    st.metric(
+                        "신규회원",
+                        f"{latest.get(NEW_MEM, 0):,.0f}",
+                        fmt_delta(
+                            latest.get(NEW_MEM, 0),
+                            prev.get(NEW_MEM, 0) if prev is not None else None
+                        )
+                    )
+    
+                with m4:
+                    st.metric(
+                        "탈퇴회원",
+                        f"{latest.get(CHURN_MEM, 0):,.0f}",
+                        fmt_delta(
+                            latest.get(CHURN_MEM, 0),
+                            prev.get(CHURN_MEM, 0) if prev is not None else None
+                        )
+                    )
+    
+        st.divider()
+        st.header("채널별 트래픽 추이 분석")
+    
+        tab1, tab2, tab3 = st.tabs(["PV 추이 (통합)", "앱 다운로드 추이", "회원 지표 추이"])
+    
+        with tab1:
+            fig_pv = px.line(
                 df,
                 x="주차",
-                y=mem_cols,
+                y=["방송_PV", "뉴스_PV"],
                 markers=True,
-                title="회원 지표 추이 (총/전환/신규/탈퇴)"
+                title="방송 vs 뉴스 PV 변화 추이"
             )
-            fig_mem.update_layout(
+            fig_pv.update_layout(
                 hovermode="x unified",
                 xaxis_title=None,
-                yaxis_title="회원 수",
-                legend_title="지표",
+                yaxis_title="페이지뷰 (PV)",
+                legend_title="채널",
                 template="plotly_white"
             )
-            add_selected_week_line(fig_mem, df, selected_week)
-            st.plotly_chart(fig_mem, use_container_width=True)
-
-    st.divider()
-    st.header("트래픽 급등/급락 감지")
-
-    alerts = []
-
-    def check_surge(label, curr, prev_value, threshold=0.1):
-        try:
-            if prev_value is None:
-                return
-            prev_val = float(prev_value)
-            curr_val = float(curr)
-            if prev_val == 0:
-                return
-            pct = (curr_val - prev_val) / prev_val
-            if abs(pct) >= threshold:
-                direction = "급등 📈" if pct > 0 else "급락 📉"
-                alerts.append(
-                    f"- **{label}**: 전주 대비 **{pct*100:.1f}%** {direction} ({prev_val:,.0f} → {curr_val:,.0f})"
-                )
-        except Exception:
-            return
-
-    check_surge("방송 PV", latest.get("방송_PV", 0), prev.get("방송_PV", None) if prev is not None else None, threshold=0.1)
-    check_surge("뉴스 PV", latest.get("뉴스_PV", 0), prev.get("뉴스_PV", None) if prev is not None else None, threshold=0.1)
-    check_surge("방송 앱 다운로드", broadcast_app, prev_broadcast_app, threshold=0.15)
-    check_surge("신규회원", latest.get(NEW_MEM, 0), prev.get(NEW_MEM, None) if prev is not None else None, threshold=0.2)
-    check_surge("탈퇴회원", latest.get(CHURN_MEM, 0), prev.get(CHURN_MEM, None) if prev is not None else None, threshold=0.2)
-    check_surge("누적전환회원", latest.get(CONV_MEM, 0), prev.get(CONV_MEM, None) if prev is not None else None, threshold=0.05)
-
-    if prev is None:
-        st.info("선택한 주차가 첫 번째 주차라 전주 대비 계산이 불가합니다.")
-    elif alerts:
-        st.warning("⚠️ 주요 변동 사항이 감지되었습니다:")
-        for alert in alerts:
-            st.markdown(alert)
-    else:
-        st.success("✅ 특이 사항 없이 안정적인 추세를 보이고 있습니다.")
-
-    st.divider()
-    st.header("AI 심층 분석")
-
-    if "ai_report" not in st.session_state:
-        st.session_state["ai_report"] = None
-
-    if st.session_state["ai_report"] is None:
-        if st.button("✨ AI 분석 내용 확인하기", type="primary"):
-            if not api_key:
-                st.error("사이드바에 Gemini API 키를 먼저 입력해주세요!")
+            add_selected_week_line(fig_pv, df, selected_week)
+            st.plotly_chart(fig_pv, use_container_width=True)
+    
+        with tab2:
+            fig_app = px.bar(
+                df,
+                x="주차",
+                y=["방송_AOS 다운로드", "방송_iOS 다운로드"],
+                title="OS별 앱 다운로드 추이",
+                barmode="group"
+            )
+            fig_app.update_layout(
+                hovermode="x unified",
+                xaxis_title=None,
+                template="plotly_white"
+            )
+            add_selected_week_line(fig_app, df, selected_week)
+            st.plotly_chart(fig_app, use_container_width=True)
+    
+        with tab3:
+            mem_cols = [c for c in [TOTAL_MEM, CONV_MEM, NEW_MEM, CHURN_MEM] if c in df.columns]
+            if not mem_cols:
+                st.warning("회원 지표 컬럼을 찾지 못했습니다. (총회원수/누적전환회원/신규회원/탈퇴회원)")
             else:
-                with st.spinner("AI가 데이터를 분석하고 있습니다..."):
-                    try:
-                        genai.configure(api_key=api_key)
-                        model = genai.GenerativeModel("gemini-2.5-flash")
-
-                        tail_n = 8
-                        tail_df = df.tail(tail_n).copy()
-
-                        def safe_int(x):
-                            try:
-                                return int(float(x))
-                            except Exception:
-                                return 0
-
-                        def fmt_abs_delta(curr, prev_value):
-                            if prev_value is None:
-                                return "N/A"
-                            try:
-                                curr = float(curr)
-                                prev_value = float(prev_value)
-                                return f"{curr - prev_value:+,.0f}"
-                            except Exception:
-                                return "N/A"
-
-                        metrics = {
-                            "방송_PV": ("방송 PV", latest.get("방송_PV", 0), prev.get("방송_PV", 0) if prev is not None else None),
-                            "뉴스_PV": ("뉴스 PV", latest.get("뉴스_PV", 0), prev.get("뉴스_PV", 0) if prev is not None else None),
-                            "방송_사용자": ("방송 UV", latest.get("방송_사용자", 0), prev.get("방송_사용자", 0) if prev is not None else None),
-                            "앱다운로드": ("앱 다운로드", curr_app, prev_app),
-                            "총회원수": ("총회원수", latest.get(TOTAL_MEM, 0), prev.get(TOTAL_MEM, 0) if prev is not None else None),
-                            "누적전환회원": ("누적전환회원", latest.get(CONV_MEM, 0), prev.get(CONV_MEM, 0) if prev is not None else None),
-                            "신규회원": ("신규회원", latest.get(NEW_MEM, 0), prev.get(NEW_MEM, 0) if prev is not None else None),
-                            "탈퇴회원": ("탈퇴회원", latest.get(CHURN_MEM, 0), prev.get(CHURN_MEM, 0) if prev is not None else None),
-                        }
-
-                        tail_rows = []
-                        for _, r in tail_df.iterrows():
-                            tail_rows.append({
-                                "주차": str(r.get("주차", "")),
-                                "방송_PV": safe_int(r.get("방송_PV", 0)),
-                                "뉴스_PV": safe_int(r.get("뉴스_PV", 0)),
-                                "방송_사용자": safe_int(r.get("방송_사용자", 0)),
-                                "앱다운로드": safe_int(r.get("방송_AOS 다운로드", 0) + r.get("방송_iOS 다운로드", 0)),
-                                "총회원수": safe_int(r.get(TOTAL_MEM, 0)),
-                                "누적전환회원": safe_int(r.get(CONV_MEM, 0)),
-                                "신규회원": safe_int(r.get(NEW_MEM, 0)),
-                                "탈퇴회원": safe_int(r.get(CHURN_MEM, 0)),
-                            })
-
-                        data_summary = f"""
-[기준 주차]: {latest.get('주차','')}
-
-[이번주 KPI & 전주 대비]
-{chr(10).join([
-f"- {label}: {curr:,.0f} (전주대비 {fmt_delta(curr, p)} / {fmt_abs_delta(curr, p)})"
-for _, (label, curr, p) in metrics.items()
-])}
-
-[규칙 기반 변화 감지(Quick Check)]
-{chr(10).join(alerts) if alerts else "- 특이사항 없음"}
-
-[최근 {tail_n}주 추이 데이터(근거)]
-{tail_rows}
-""".strip()
-
-                        prompt = f"""
-너는 JTBC의 '수석 데이터 분석가'이며, 임원 보고용 주간 리포트를 작성함
-반드시 아래 규칙을 지켜라
-
-[규칙]
-- 근거는 제공된 입력 데이터(이번주/전주/최근 8주/Quick Check)에서만 사용
-- 입력에 없는 사실은 단정 금지 → 반드시 '확실하지 않음' 또는 '(추측입니다)'로 표시
-- 가능하면 숫자를 포함해 근거를 제시(전주대비 %, 절대증감, 최근 8주 추이 중 특징)
-- 문장 끝 마침표 금지
-- 한국어, 간결한 보고서체(~함/~임)
-- 과장 금지, 실행 가능한 제언 중심
-
-[입력 데이터]
-{data_summary}
-
-[출력 형식(반드시 준수)]
-JTBC 주간 데이터 분석 리포트 ({latest.get('주차','')})
-작성자: Gemini
-
-1. 📌 금주 3줄 요약
-- (3줄, 각 줄에 근거 숫자 포함)
-
-2. 🚨 주목해야 할 지표 (Top 2)
-- 지표1: (이번주 값 / 전주 대비 % / 절대증감) + 해석 2줄
-- 지표2: (이번주 값 / 전주 대비 % / 절대증감) + 해석 2줄
-
-3. 💡 원인 추론 및 제언 (가설)
-- 가설 1: ...
-  - 근거(입력 데이터 기반): ...
-  - 확인해야 할 데이터/질문: ...
-  - 제언(바로 할 액션): ...
-- 가설 2: ...
-  - 근거(입력 데이터 기반): ...
-  - 확인해야 할 데이터/질문: ...
-  - 제언(바로 할 액션): ...
-- 가설 3: ...
-  - 근거(입력 데이터 기반): ...
-  - 확인해야 할 데이터/질문: ...
-  - 제언(바로 할 액션): ...
-
-4. ✅ 다음 액션 체크리스트
-- (3~6개, 담당자가 바로 할 수 있는 형태로)
-""".strip()
-
-                        response = model.generate_content(prompt)
-                        st.session_state["ai_report"] = response.text
-                        st.rerun()
-
-                    except Exception as e:
-                        st.error(f"AI 분석 중 오류 발생: {e}")
-    else:
-        st.info("✅ 생성된 리포트 (캐시됨)")
-        st.markdown(st.session_state["ai_report"])
-        if st.button("🔄 리포트 다시 만들기"):
+                fig_mem = px.line(
+                    df,
+                    x="주차",
+                    y=mem_cols,
+                    markers=True,
+                    title="회원 지표 추이 (총/전환/신규/탈퇴)"
+                )
+                fig_mem.update_layout(
+                    hovermode="x unified",
+                    xaxis_title=None,
+                    yaxis_title="회원 수",
+                    legend_title="지표",
+                    template="plotly_white"
+                )
+                add_selected_week_line(fig_mem, df, selected_week)
+                st.plotly_chart(fig_mem, use_container_width=True)
+    
+        st.divider()
+        st.header("트래픽 급등/급락 감지")
+    
+        alerts = []
+    
+        def check_surge(label, curr, prev_value, threshold=0.1):
+            try:
+                if prev_value is None:
+                    return
+                prev_val = float(prev_value)
+                curr_val = float(curr)
+                if prev_val == 0:
+                    return
+                pct = (curr_val - prev_val) / prev_val
+                if abs(pct) >= threshold:
+                    direction = "급등 📈" if pct > 0 else "급락 📉"
+                    alerts.append(
+                        f"- **{label}**: 전주 대비 **{pct*100:.1f}%** {direction} ({prev_val:,.0f} → {curr_val:,.0f})"
+                    )
+            except Exception:
+                return
+    
+        check_surge("방송 PV", latest.get("방송_PV", 0), prev.get("방송_PV", None) if prev is not None else None, threshold=0.1)
+        check_surge("뉴스 PV", latest.get("뉴스_PV", 0), prev.get("뉴스_PV", None) if prev is not None else None, threshold=0.1)
+        check_surge("방송 앱 다운로드", broadcast_app, prev_broadcast_app, threshold=0.15)
+        check_surge("신규회원", latest.get(NEW_MEM, 0), prev.get(NEW_MEM, None) if prev is not None else None, threshold=0.2)
+        check_surge("탈퇴회원", latest.get(CHURN_MEM, 0), prev.get(CHURN_MEM, None) if prev is not None else None, threshold=0.2)
+        check_surge("누적전환회원", latest.get(CONV_MEM, 0), prev.get(CONV_MEM, None) if prev is not None else None, threshold=0.05)
+    
+        if prev is None:
+            st.info("선택한 주차가 첫 번째 주차라 전주 대비 계산이 불가합니다.")
+        elif alerts:
+            st.warning("⚠️ 주요 변동 사항이 감지되었습니다:")
+            for alert in alerts:
+                st.markdown(alert)
+        else:
+            st.success("✅ 특이 사항 없이 안정적인 추세를 보이고 있습니다.")
+    
+        st.divider()
+        st.header("AI 심층 분석")
+    
+        if "ai_report" not in st.session_state:
             st.session_state["ai_report"] = None
-            st.rerun()
-
-elif page_view == "뉴스":
-    st.divider()
-    st.markdown("##### 조회 기간")
-    range_label = st.radio(
-        "조회 기간",
-        options=["최근 1년", "최근 6개월", "최근 3개월"],
-        horizontal=True,
-        index=0,
-        key="range_label_news_only",
-        label_visibility="collapsed"
-    )
-    df2 = df.tail(weeks_map[range_label]).copy()
-    render_news_detail(df2, latest, selected_week, news_uv_col_global)
-
-elif page_view == "방송":
-    st.divider()
-    st.markdown("##### 조회 기간")
-    range_label = st.radio(
-        "조회 기간",
-        options=["최근 1년", "최근 6개월", "최근 3개월"],
-        horizontal=True,
-        index=0,
-        key="range_label_broadcast_only",
-        label_visibility="collapsed"
-    )
-    df2 = df.tail(weeks_map[range_label]).copy()
-    render_broadcast_detail(df2, selected_week)
+    
+        if st.session_state["ai_report"] is None:
+            if st.button("✨ AI 분석 내용 확인하기", type="primary"):
+                if not api_key:
+                    st.error("사이드바에 Gemini API 키를 먼저 입력해주세요!")
+                else:
+                    with st.spinner("AI가 데이터를 분석하고 있습니다..."):
+                        try:
+                            genai.configure(api_key=api_key)
+                            model = genai.GenerativeModel("gemini-2.5-flash")
+    
+                            tail_n = 8
+                            tail_df = df.tail(tail_n).copy()
+    
+                            def safe_int(x):
+                                try:
+                                    return int(float(x))
+                                except Exception:
+                                    return 0
+    
+                            def fmt_abs_delta(curr, prev_value):
+                                if prev_value is None:
+                                    return "N/A"
+                                try:
+                                    curr = float(curr)
+                                    prev_value = float(prev_value)
+                                    return f"{curr - prev_value:+,.0f}"
+                                except Exception:
+                                    return "N/A"
+    
+                            metrics = {
+                                "방송_PV": ("방송 PV", latest.get("방송_PV", 0), prev.get("방송_PV", 0) if prev is not None else None),
+                                "뉴스_PV": ("뉴스 PV", latest.get("뉴스_PV", 0), prev.get("뉴스_PV", 0) if prev is not None else None),
+                                "방송_사용자": ("방송 UV", latest.get("방송_사용자", 0), prev.get("방송_사용자", 0) if prev is not None else None),
+                                "앱다운로드": ("앱 다운로드", curr_app, prev_app),
+                                "총회원수": ("총회원수", latest.get(TOTAL_MEM, 0), prev.get(TOTAL_MEM, 0) if prev is not None else None),
+                                "누적전환회원": ("누적전환회원", latest.get(CONV_MEM, 0), prev.get(CONV_MEM, 0) if prev is not None else None),
+                                "신규회원": ("신규회원", latest.get(NEW_MEM, 0), prev.get(NEW_MEM, 0) if prev is not None else None),
+                                "탈퇴회원": ("탈퇴회원", latest.get(CHURN_MEM, 0), prev.get(CHURN_MEM, 0) if prev is not None else None),
+                            }
+    
+                            tail_rows = []
+                            for _, r in tail_df.iterrows():
+                                tail_rows.append({
+                                    "주차": str(r.get("주차", "")),
+                                    "방송_PV": safe_int(r.get("방송_PV", 0)),
+                                    "뉴스_PV": safe_int(r.get("뉴스_PV", 0)),
+                                    "방송_사용자": safe_int(r.get("방송_사용자", 0)),
+                                    "앱다운로드": safe_int(r.get("방송_AOS 다운로드", 0) + r.get("방송_iOS 다운로드", 0)),
+                                    "총회원수": safe_int(r.get(TOTAL_MEM, 0)),
+                                    "누적전환회원": safe_int(r.get(CONV_MEM, 0)),
+                                    "신규회원": safe_int(r.get(NEW_MEM, 0)),
+                                    "탈퇴회원": safe_int(r.get(CHURN_MEM, 0)),
+                                })
+    
+                            data_summary = f"""
+    [기준 주차]: {latest.get('주차','')}
+    
+    [이번주 KPI & 전주 대비]
+    {chr(10).join([
+    f"- {label}: {curr:,.0f} (전주대비 {fmt_delta(curr, p)} / {fmt_abs_delta(curr, p)})"
+    for _, (label, curr, p) in metrics.items()
+    ])}
+    
+    [규칙 기반 변화 감지(Quick Check)]
+    {chr(10).join(alerts) if alerts else "- 특이사항 없음"}
+    
+    [최근 {tail_n}주 추이 데이터(근거)]
+    {tail_rows}
+    """.strip()
+    
+                            prompt = f"""
+    너는 JTBC의 '수석 데이터 분석가'이며, 임원 보고용 주간 리포트를 작성함
+    반드시 아래 규칙을 지켜라
+    
+    [규칙]
+    - 근거는 제공된 입력 데이터(이번주/전주/최근 8주/Quick Check)에서만 사용
+    - 입력에 없는 사실은 단정 금지 → 반드시 '확실하지 않음' 또는 '(추측입니다)'로 표시
+    - 가능하면 숫자를 포함해 근거를 제시(전주대비 %, 절대증감, 최근 8주 추이 중 특징)
+    - 문장 끝 마침표 금지
+    - 한국어, 간결한 보고서체(~함/~임)
+    - 과장 금지, 실행 가능한 제언 중심
+    
+    [입력 데이터]
+    {data_summary}
+    
+    [출력 형식(반드시 준수)]
+    JTBC 주간 데이터 분석 리포트 ({latest.get('주차','')})
+    작성자: Gemini
+    
+    1. 📌 금주 3줄 요약
+    - (3줄, 각 줄에 근거 숫자 포함)
+    
+    2. 🚨 주목해야 할 지표 (Top 2)
+    - 지표1: (이번주 값 / 전주 대비 % / 절대증감) + 해석 2줄
+    - 지표2: (이번주 값 / 전주 대비 % / 절대증감) + 해석 2줄
+    
+    3. 💡 원인 추론 및 제언 (가설)
+    - 가설 1: ...
+      - 근거(입력 데이터 기반): ...
+      - 확인해야 할 데이터/질문: ...
+      - 제언(바로 할 액션): ...
+    - 가설 2: ...
+      - 근거(입력 데이터 기반): ...
+      - 확인해야 할 데이터/질문: ...
+      - 제언(바로 할 액션): ...
+    - 가설 3: ...
+      - 근거(입력 데이터 기반): ...
+      - 확인해야 할 데이터/질문: ...
+      - 제언(바로 할 액션): ...
+    
+    4. ✅ 다음 액션 체크리스트
+    - (3~6개, 담당자가 바로 할 수 있는 형태로)
+    """.strip()
+    
+                            response = model.generate_content(prompt)
+                            st.session_state["ai_report"] = response.text
+                            st.rerun()
+    
+                        except Exception as e:
+                            st.error(f"AI 분석 중 오류 발생: {e}")
+        else:
+            st.info("✅ 생성된 리포트 (캐시됨)")
+            st.markdown(st.session_state["ai_report"])
+            if st.button("🔄 리포트 다시 만들기"):
+                st.session_state["ai_report"] = None
+                st.rerun()
+    
+    elif page_view == "뉴스":
+        st.divider()
+        st.markdown("##### 조회 기간")
+        range_label = st.radio(
+            "조회 기간",
+            options=["최근 1년", "최근 6개월", "최근 3개월"],
+            horizontal=True,
+            index=0,
+            key="range_label_news_only",
+            label_visibility="collapsed"
+        )
+        df2 = df.tail(weeks_map[range_label]).copy()
+        render_news_detail(df2, latest, selected_week, news_uv_col_global)
+    
+    elif page_view == "방송":
+        st.divider()
+        st.markdown("##### 조회 기간")
+        range_label = st.radio(
+            "조회 기간",
+            options=["최근 1년", "최근 6개월", "최근 3개월"],
+            horizontal=True,
+            index=0,
+            key="range_label_broadcast_only",
+            label_visibility="collapsed"
+        )
+        df2 = df.tail(weeks_map[range_label]).copy()
+        render_broadcast_detail(df2, selected_week)
