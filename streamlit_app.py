@@ -154,8 +154,8 @@ with st.sidebar:
     if not csv_url:
         st.warning("CSV URL을 입력해야 데이터가 표시됩니다", icon="⚠️")
 
-    DEFAULT_GEMINI_API_KEY = "여기에_본인_API_KEY를_넣으세요"
-    
+    DEFAULT_GEMINI_API_KEY = "API Key 입력"
+
     with st.expander("AI 분석 확장 설정", expanded=False):
         st.markdown('<div class="sidebar-section-title">Gemini API Key</div>', unsafe_allow_html=True)
     
@@ -170,11 +170,7 @@ with st.sidebar:
         )
     
         st.caption("고정 API Key가 적용되어 있습니다")
-        run_ai_from_sidebar = st.button("실행", use_container_width=True, key="run_ai_from_sidebar")
     
-    if "run_ai_from_sidebar" not in locals():
-        run_ai_from_sidebar = False
-
     st.divider()
 
     # -----------------------------
