@@ -150,27 +150,21 @@ with st.sidebar:
         label_visibility="collapsed",
         help="Google Sheets의 CSV export 링크를 입력하세요"
     )
-    st.caption("지정된 플랫폼 트래픽 데이터 문서(CSV)를 입력합니다")
     
-    # 2) Gemini API Key
-    st.markdown('<div class="sidebar-section-title">Gemini API Key</div>', unsafe_allow_html=True)
-    
+    # 2) AI 분석 설정
     DEFAULT_GEMINI_API_KEY = "AIzaSyCDVtMlliw-QubVtEElo6jw0ChzQkyF030"
     api_key = DEFAULT_GEMINI_API_KEY
     
-    st.text_input(
-        label="Gemini API Key",
-        value=api_key,
-        type="password",
-        disabled=True,
-        label_visibility="collapsed"
-    )
-    st.caption("고정 API Key가 적용되어 있습니다")
-    
     with st.expander("AI 분석 설정", expanded=False):
-        st.caption("AI 심층 분석 기능 관련 설정 영역입니다")
+        st.markdown('<div class="sidebar-section-title">Gemini API Key</div>', unsafe_allow_html=True)
     
-    st.divider()
+        st.text_input(
+            label="Gemini API Key",
+            value=api_key,
+            type="password",
+            disabled=True,
+            label_visibility="collapsed"
+        )
 
     # -----------------------------
     # 3) 운영 안내
