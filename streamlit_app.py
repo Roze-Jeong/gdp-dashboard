@@ -154,8 +154,8 @@ with st.sidebar:
     if not csv_url:
         st.warning("CSV URL을 입력해야 데이터가 표시됩니다", icon="⚠️")
 
-    DEFAULT_GEMINI_API_KEY = "API Key 입력"
-
+    DEFAULT_GEMINI_API_KEY = "AIzaSyCDVtMlliw-QubVtEElo6jw0ChzQkyF030"
+    
     with st.expander("AI 분석 확장 설정", expanded=False):
         st.markdown('<div class="sidebar-section-title">Gemini API Key</div>', unsafe_allow_html=True)
     
@@ -618,9 +618,7 @@ try:
             st.session_state["ai_report"] = None
         
         if st.session_state["ai_report"] is None:
-            st.caption("좌측 사이드바 > AI 분석 확장 설정 > 실행 버튼을 누르면 리포트가 생성됩니다")
-        
-            if run_ai_from_sidebar:
+            if st.button("✨ AI 분석 내용 확인하기", type="primary"):
                 if not api_key:
                     st.error("고정 API Key가 설정되지 않았습니다")
                 else:
@@ -745,7 +743,6 @@ try:
             if st.button("🔄 리포트 다시 만들기"):
                 st.session_state["ai_report"] = None
                 st.rerun()
-
     elif page_view == "뉴스":
         st.divider()
         st.markdown("##### 조회 기간")
