@@ -154,20 +154,26 @@ with st.sidebar:
     if not csv_url:
         st.warning("CSV URL을 입력해야 데이터가 표시됩니다", icon="⚠️")
 
+    DEFAULT_GEMINI_API_KEY = "여기에_본인_API_KEY를_넣으세요"
+    
     with st.expander("AI 분석 확장 설정", expanded=False):
         st.markdown('<div class="sidebar-section-title">Gemini API Key</div>', unsafe_allow_html=True)
-        api_key = st.text_input(
+    
+        api_key = DEFAULT_GEMINI_API_KEY
+    
+        st.text_input(
             label="Gemini API Key",
+            value=api_key,
             type="password",
-            value="",
-            placeholder="AI Studio에서 발급받은 키",
-            label_visibility="collapsed",
-            help="키가 없으면 AI 심층분석만 비활성화되며, 기본 데이터는 정상 표시됩니다"
+            disabled=True,
+            label_visibility="collapsed"
         )
-        st.caption("AI 심층분석 기능을 사용할 때만 필요합니다")
-
-    if "api_key" not in locals():
-        api_key = ""
+    
+        st.caption("고정 API Key가 적용되어 있습니다")
+        run_ai_from_sidebar = st.button("실행", use_container_width=True, key="run_ai_from_sidebar")
+    
+    if "run_ai_from_sidebar" not in locals():
+        run_ai_from_sidebar = False
 
     st.divider()
 
@@ -614,26 +620,28 @@ try:
 
         if "ai_report" not in st.session_state:
             st.session_state["ai_report"] = None
-
+        
         if st.session_state["ai_report"] is None:
-            if st.button("✨ AI 분석 내용 확인하기", type="primary"):
+            st.caption("좌측 사이드바 > AI 분석 확장 설정 > 실행 버튼을 누르면 리포트가 생성됩니다")
+        
+            if run_ai_from_sidebar:
                 if not api_key:
-                    st.error("사이드바에 Gemini API 키를 먼저 입력해주세요!")
+                    st.error("고정 API Key가 설정되지 않았습니다")
                 else:
                     with st.spinner("AI가 데이터를 분석하고 있습니다..."):
                         try:
                             genai.configure(api_key=api_key)
                             model = genai.GenerativeModel("gemini-2.5-flash")
-
+        
                             tail_n = 8
                             tail_df = df.tail(tail_n).copy()
-
+        
                             def safe_int(x):
                                 try:
                                     return int(float(x))
                                 except Exception:
                                     return 0
-
+        
                             def fmt_abs_delta(curr, prev_value):
                                 if prev_value is None:
                                     return "N/A"
@@ -643,7 +651,7 @@ try:
                                     return f"{curr - prev_value:+,.0f}"
                                 except Exception:
                                     return "N/A"
-
+        
                             metrics = {
                                 "방송_PV": ("방송 PV", latest.get("방송_PV", 0), prev.get("방송_PV", 0) if prev is not None else None),
                                 "뉴스_PV": ("뉴스 PV", latest.get("뉴스_PV", 0), prev.get("뉴스_PV", 0) if prev is not None else None),
@@ -654,7 +662,7 @@ try:
                                 "신규회원": ("신규회원", latest.get(NEW_MEM, 0), prev.get(NEW_MEM, 0) if prev is not None else None),
                                 "탈퇴회원": ("탈퇴회원", latest.get(CHURN_MEM, 0), prev.get(CHURN_MEM, 0) if prev is not None else None),
                             }
-
+        
                             tail_rows = []
                             for _, r in tail_df.iterrows():
                                 tail_rows.append({
@@ -668,71 +676,71 @@ try:
                                     "신규회원": safe_int(r.get(NEW_MEM, 0)),
                                     "탈퇴회원": safe_int(r.get(CHURN_MEM, 0)),
                                 })
-
+        
                             data_summary = f"""
-[기준 주차]: {latest.get('주차','')}
-
-[이번주 KPI & 전주 대비]
-{chr(10).join([
-f"- {label}: {curr:,.0f} (전주대비 {fmt_delta(curr, p)} / {fmt_abs_delta(curr, p)})"
-for _, (label, curr, p) in metrics.items()
-])}
-
-[규칙 기반 변화 감지(Quick Check)]
-{chr(10).join(alerts) if alerts else "- 특이사항 없음"}
-
-[최근 {tail_n}주 추이 데이터(근거)]
-{tail_rows}
-""".strip()
-
+        [기준 주차]: {latest.get('주차','')}
+        
+        [이번주 KPI & 전주 대비]
+        {chr(10).join([
+        f"- {label}: {curr:,.0f} (전주대비 {fmt_delta(curr, p)} / {fmt_abs_delta(curr, p)})"
+        for _, (label, curr, p) in metrics.items()
+        ])}
+        
+        [규칙 기반 변화 감지(Quick Check)]
+        {chr(10).join(alerts) if alerts else "- 특이사항 없음"}
+        
+        [최근 {tail_n}주 추이 데이터(근거)]
+        {tail_rows}
+        """.strip()
+        
                             prompt = f"""
-너는 JTBC의 '수석 데이터 분석가'이며, 임원 보고용 주간 리포트를 작성함
-반드시 아래 규칙을 지켜라
-
-[규칙]
-- 근거는 제공된 입력 데이터(이번주/전주/최근 8주/Quick Check)에서만 사용
-- 입력에 없는 사실은 단정 금지 → 반드시 '확실하지 않음' 또는 '(추측입니다)'로 표시
-- 가능하면 숫자를 포함해 근거를 제시(전주대비 %, 절대증감, 최근 8주 추이 중 특징)
-- 문장 끝 마침표 금지
-- 한국어, 간결한 보고서체(~함/~임)
-- 과장 금지, 실행 가능한 제언 중심
-
-[입력 데이터]
-{data_summary}
-
-[출력 형식(반드시 준수)]
-JTBC 주간 데이터 분석 리포트 ({latest.get('주차','')})
-작성자: Gemini
-
-1. 📌 금주 3줄 요약
-- (3줄, 각 줄에 근거 숫자 포함)
-
-2. 🚨 주목해야 할 지표 (Top 2)
-- 지표1: (이번주 값 / 전주 대비 % / 절대증감) + 해석 2줄
-- 지표2: (이번주 값 / 전주 대비 % / 절대증감) + 해석 2줄
-
-3. 💡 원인 추론 및 제언 (가설)
-- 가설 1: ...
-  - 근거(입력 데이터 기반): ...
-  - 확인해야 할 데이터/질문: ...
-  - 제언(바로 할 액션): ...
-- 가설 2: ...
-  - 근거(입력 데이터 기반): ...
-  - 확인해야 할 데이터/질문: ...
-  - 제언(바로 할 액션): ...
-- 가설 3: ...
-  - 근거(입력 데이터 기반): ...
-  - 확인해야 할 데이터/질문: ...
-  - 제언(바로 할 액션): ...
-
-4. ✅ 다음 액션 체크리스트
-- (3~6개, 담당자가 바로 할 수 있는 형태로)
-""".strip()
-
+        너는 JTBC의 '수석 데이터 분석가'이며, 임원 보고용 주간 리포트를 작성함
+        반드시 아래 규칙을 지켜라
+        
+        [규칙]
+        - 근거는 제공된 입력 데이터(이번주/전주/최근 8주/Quick Check)에서만 사용
+        - 입력에 없는 사실은 단정 금지 → 반드시 '확실하지 않음' 또는 '(추측입니다)'로 표시
+        - 가능하면 숫자를 포함해 근거를 제시(전주대비 %, 절대증감, 최근 8주 추이 중 특징)
+        - 문장 끝 마침표 금지
+        - 한국어, 간결한 보고서체(~함/~임)
+        - 과장 금지, 실행 가능한 제언 중심
+        
+        [입력 데이터]
+        {data_summary}
+        
+        [출력 형식(반드시 준수)]
+        JTBC 주간 데이터 분석 리포트 ({latest.get('주차','')})
+        작성자: Gemini
+        
+        1. 📌 금주 3줄 요약
+        - (3줄, 각 줄에 근거 숫자 포함)
+        
+        2. 🚨 주목해야 할 지표 (Top 2)
+        - 지표1: (이번주 값 / 전주 대비 % / 절대증감) + 해석 2줄
+        - 지표2: (이번주 값 / 전주 대비 % / 절대증감) + 해석 2줄
+        
+        3. 💡 원인 추론 및 제언 (가설)
+        - 가설 1: ...
+          - 근거(입력 데이터 기반): ...
+          - 확인해야 할 데이터/질문: ...
+          - 제언(바로 할 액션): ...
+        - 가설 2: ...
+          - 근거(입력 데이터 기반): ...
+          - 확인해야 할 데이터/질문: ...
+          - 제언(바로 할 액션): ...
+        - 가설 3: ...
+          - 근거(입력 데이터 기반): ...
+          - 확인해야 할 데이터/질문: ...
+          - 제언(바로 할 액션): ...
+        
+        4. ✅ 다음 액션 체크리스트
+        - (3~6개, 담당자가 바로 할 수 있는 형태로)
+        """.strip()
+        
                             response = model.generate_content(prompt)
                             st.session_state["ai_report"] = response.text
                             st.rerun()
-
+        
                         except Exception as e:
                             st.error(f"AI 분석 중 오류 발생: {e}")
         else:
