@@ -440,6 +440,9 @@ try:
     # -------------------------------------------------------------------------
     # 페이지 라우팅
     # -------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
+    # 페이지 라우팅
+    # -------------------------------------------------------------------------
     weeks_map = {"최근 1년": 52, "최근 6개월": 26, "최근 3개월": 13}
     
     if page_view == "전체":
@@ -654,7 +657,7 @@ try:
     
         check_surge("방송 PV", latest.get("방송_PV", 0), prev.get("방송_PV", None) if prev is not None else None, threshold=0.1)
         check_surge("뉴스 PV", latest.get("뉴스_PV", 0), prev.get("뉴스_PV", None) if prev is not None else None, threshold=0.1)
-        check_surge("방송 앱 다운로드", curr_app, prev_app, threshold=0.15)
+        check_surge("방송 앱 다운로드", broadcast_app, prev_broadcast_app, threshold=0.15)
         check_surge("신규회원", latest.get(NEW_MEM, 0), prev.get(NEW_MEM, None) if prev is not None else None, threshold=0.2)
         check_surge("탈퇴회원", latest.get(CHURN_MEM, 0), prev.get(CHURN_MEM, None) if prev is not None else None, threshold=0.2)
         check_surge("누적전환회원", latest.get(CONV_MEM, 0), prev.get(CONV_MEM, None) if prev is not None else None, threshold=0.05)
