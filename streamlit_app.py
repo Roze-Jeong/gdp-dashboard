@@ -284,8 +284,8 @@ try:
         st.markdown("#### 주별 뉴스 키워드 TOP3")
         st.caption("선택 주차 기준 주요 키워드와 비중(%)")
 
-        kw_cols = ["뉴스_키워드_1순위", "뉴스_키워드_2순위", "뉴스_키워드_3순위"]
-        kw_share_cols = ["뉴스_키워드_1비중", "뉴스_키워드_2비중", "뉴스_키워드_3비중"]
+        kw_cols = ["뉴스_키워드1순위", "뉴스_키워드2순위", "뉴스_키워드3순위"]
+        kw_share_cols = ["뉴스_키워드1비중", "뉴스_키워드2비중", "뉴스_키워드3비중"]
 
         missing = [c for c in kw_cols + kw_share_cols if c not in df.columns]
         if missing:
