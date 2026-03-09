@@ -152,12 +152,12 @@ with st.sidebar:
     )
     
     # 2) AI 분석 설정
+    st.markdown('<div class="sidebar-section-title">AI 분석 설정</div>', unsafe_allow_html=True)
+    
     DEFAULT_GEMINI_API_KEY = "AIzaSyCDVtMlliw-QubVtEElo6jw0ChzQkyF030"
     api_key = DEFAULT_GEMINI_API_KEY
     
-    with st.expander("AI 분석 설정", expanded=False):
-        st.markdown('<div class="sidebar-section-title">Gemini API Key</div>', unsafe_allow_html=True)
-    
+    with st.expander("Gemini API Key", expanded=False):
         st.text_input(
             label="Gemini API Key",
             value=api_key,
