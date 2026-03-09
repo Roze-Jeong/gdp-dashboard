@@ -6,7 +6,7 @@ import google.generativeai as genai
 # -----------------------------------------------------------------------------
 # 1. 기본 설정 및 유틸리티
 # -----------------------------------------------------------------------------
-st.set_page_config(page_title="NEWS&NOW 플랫폼 트래픽 AI 대시보드", page_icon="📊", layout="wide")
+st.set_page_config(page_title="NEWS&방송플랫폼 트래픽 AI 대시보드", layout="wide")
 
 
 @st.cache_data(ttl=300)
@@ -139,10 +139,10 @@ with st.sidebar:
 # -----------------------------------------------------------------------------
 # 3. 메인 시작
 # -----------------------------------------------------------------------------
-st.title("📊 NEWS&NOW 플랫폼 트래픽 AI 대시보드")
+st.title("NEWS&방송 플랫폼 트래픽 AI 대시보드")
 
 if not csv_url:
-    st.warning("📌 좌측 사이드바에서 CSV URL(필수)을 입력하면 대시보드가 자동으로 로딩됩니다")
+    st.warning("좌측 사이드바에서 CSV URL(필수)을 입력하면 대시보드가 자동으로 로딩됩니다")
     st.stop()
 
 try:
@@ -163,7 +163,7 @@ try:
 
     # 기준 주차
     st.divider()
-    st.subheader("🗓️ 기준 주차")
+    st.subheader("기준 주차")
     weeks = df["주차"].astype(str).tolist()[::-1]
     selected_week = st.selectbox("주차", options=weeks, index=0)
     st.caption("※ 선택한 주차를 기준으로 모든 지표와 AI 분석 결과가 업데이트됩니다")
