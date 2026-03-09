@@ -281,7 +281,7 @@ try:
         else:
             st.info("뉴스 앱다운로드 컬럼을 찾지 못했습니다")
 
-        st.markdown("#### 🏷️ 주별 뉴스 키워드 TOP3")
+        st.markdown("#### 주별 뉴스 키워드 TOP3")
         st.caption("선택 주차 기준 주요 키워드와 비중(%)")
 
         kw_cols = ["뉴스_키워드_1순위", "뉴스_키워드_2순위", "뉴스_키워드_3순위"]
@@ -331,7 +331,7 @@ try:
                 fig_kw.update_traces(textposition="outside")
                 st.plotly_chart(fig_kw, use_container_width=True, key="news_kw_bar")
 
-        st.markdown("#### 🧭 뉴스 유입 소스 (사용자/세션)")
+        st.markdown("#### 뉴스 유입 소스 (사용자/세션)")
         st.caption("소스 순서: 전체 → 다이렉트 → 네이버 → 다음 → 구글 → 기타")
 
         ordered_sources = ["전체", "다이렉트", "네이버", "다음", "구글", "기타"]
