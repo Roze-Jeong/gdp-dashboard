@@ -316,20 +316,6 @@ try:
                 top_df = pd.DataFrame(rows_kw)
                 st.dataframe(top_df, use_container_width=True, hide_index=True)
 
-                fig_kw = px.bar(
-                    top_df,
-                    x="순위",
-                    y="비중(%)",
-                    text="키워드",
-                    title="키워드 비중(%)"
-                )
-                fig_kw.update_layout(
-                    xaxis_title=None,
-                    yaxis_title="비중(%)",
-                    template="plotly_white"
-                )
-                fig_kw.update_traces(textposition="outside")
-                st.plotly_chart(fig_kw, use_container_width=True, key="news_kw_bar")
 
         st.markdown("#### 뉴스 유입 소스 (사용자/세션)")
         st.caption("소스 순서: 전체 → 다이렉트 → 네이버 → 다음 → 구글 → 기타")
