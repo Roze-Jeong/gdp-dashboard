@@ -342,8 +342,17 @@ try:
         if acq_df["사용자"].sum() == 0 and acq_df["세션"].sum() == 0:
             st.info("뉴스 유입 컬럼(뉴스_유입_XXX_사용자/세션)을 찾지 못했거나 값이 모두 0입니다")
         else:
+            color_map = {
+                "전체": "#87CEEB",
+                "다이렉트": "#8E44AD",
+                "네이버": "#2ECC71",
+                "다음": "#F1C40F",
+                "구글": "#3498DB",
+                "기타": "#7F8C8D"
+            }
+            
             c1, c2 = st.columns(2)
-
+            
             with c1:
                 fig_u = px.bar(
                     acq_df,
@@ -352,7 +361,7 @@ try:
                     title="사용자 기준",
                     category_orders={"유입소스": ordered_sources},
                     color="유입소스",
-                    color_discrete_map={"전체": "red"}
+                    color_discrete_map=color_map
                 )
                 fig_u.update_layout(
                     xaxis_title=None,
@@ -361,18 +370,22 @@ try:
                     showlegend=False
                 )
                 st.plotly_chart(fig_u, use_container_width=True, key="news_users_bar")
-
+            
             with c2:
+            
+                pie_df = acq_df[acq_df["유입소스"] != "전체"]
+            
                 fig_s = px.pie(
-                    acq_df,
+                    pie_df,
                     names="유입소스",
                     values="세션",
                     title="세션 기준",
-                    category_orders={"유입소스": ordered_sources},
                     color="유입소스",
-                    color_discrete_map={"전체": "red"}
+                    color_discrete_map=color_map
                 )
+            
                 fig_s.update_layout(template="plotly_white")
+            
                 st.plotly_chart(fig_s, use_container_width=True, key="news_sessions_pie")
 
     def render_broadcast_detail(df2, selected_week_value):
