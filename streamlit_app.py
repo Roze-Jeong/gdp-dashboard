@@ -140,36 +140,35 @@ with st.sidebar:
     # -----------------------------
     st.markdown("## 데이터 연결")
     st.caption("대시보드 구동에 필요한 입력값입니다")
-
+    
+    # 1) CSV URL
     st.markdown('<div class="sidebar-section-title">CSV URL</div>', unsafe_allow_html=True)
     csv_url = st.text_input(
         label="CSV URL",
         value="",
-        placeholder="https://docs.google.com/spreadsheets/d/.../export?format=csv&gid=0",
+        placeholder="CSV URL을 입력해야 데이터가 표시됩니다",
         label_visibility="collapsed",
         help="Google Sheets의 CSV export 링크를 입력하세요"
     )
     st.caption("지정된 플랫폼 트래픽 데이터 문서(CSV)를 입력합니다")
-
-    if not csv_url:
-        st.warning("CSV URL을 입력해야 데이터가 표시됩니다", icon="⚠️")
-
+    
+    # 2) Gemini API Key
+    st.markdown('<div class="sidebar-section-title">Gemini API Key</div>', unsafe_allow_html=True)
+    
     DEFAULT_GEMINI_API_KEY = "AIzaSyCDVtMlliw-QubVtEElo6jw0ChzQkyF030"
+    api_key = DEFAULT_GEMINI_API_KEY
     
-    with st.expander("AI 분석 확장 설정", expanded=False):
-        st.markdown('<div class="sidebar-section-title">Gemini API Key</div>', unsafe_allow_html=True)
+    st.text_input(
+        label="Gemini API Key",
+        value=api_key,
+        type="password",
+        disabled=True,
+        label_visibility="collapsed"
+    )
+    st.caption("고정 API Key가 적용되어 있습니다")
     
-        api_key = DEFAULT_GEMINI_API_KEY
-    
-        st.text_input(
-            label="Gemini API Key",
-            value=api_key,
-            type="password",
-            disabled=True,
-            label_visibility="collapsed"
-        )
-    
-        st.caption("고정 API Key가 적용되어 있습니다")
+    with st.expander("AI 분석 설정", expanded=False):
+        st.caption("AI 심층 분석 기능 관련 설정 영역입니다")
     
     st.divider()
 
